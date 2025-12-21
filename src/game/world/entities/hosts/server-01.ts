@@ -52,9 +52,8 @@ export const server01Host: Host = {
   fileSystemId: 'server-01',
   fileSystemFactory: () => {
     // Import dynamically to avoid circular dependencies
-    // Use a function that will be called at runtime
-    // For now, return null and handle in getServerFileSystem
-    return null as any; // Will be resolved at runtime in getServerFileSystem
+    // This will be resolved at runtime
+    return null as any; // Actual implementation via getServerFileSystem fallback
   },
   
   // Network Topology

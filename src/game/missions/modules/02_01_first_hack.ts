@@ -123,7 +123,7 @@ export const firstHackMissionModule: MissionModule = {
           'The file is in /home/data/secret.txt',
           'Type "cat /home/data/secret.txt" or "cd /home/data" then "cat secret.txt"',
         ],
-        solution: 'cat',
+            solution: 'cat /home/admin/data/secret.txt',
         reward: 50,
       },
       {

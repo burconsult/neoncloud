@@ -71,36 +71,59 @@ Each component plays a crucial role in data transmission.`,
 
 /**
  * Get a directory node from the file system by path
- * Handles both local file system (/home/neoncloud-user) and server file systems (/home)
+ * Handles:
+ * - Local file system: /home/neoncloud-user
+ * - Server file systems: /, /home, /home/<username>, /var, /etc, /tmp, etc.
  */
 export function getDirectoryByPath(fileSystem: FileSystem, path: string): Directory | null {
-  // Determine the root directory key
-  // Check if this is a local file system (has /home/neoncloud-user) or server file system (has /home)
-  let rootKey: string;
+  // Normalize path
+  const normalizedPath = path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
   
-  if (fileSystem['/home/neoncloud-user']) {
-    // Local file system
-    rootKey = '/home/neoncloud-user';
-  } else if (fileSystem['/home']) {
-    // Server file system
-    rootKey = '/home';
-  } else {
+  // Check if path exists directly in file system (e.g., /home, /var, /etc, /home/admin)
+  if (fileSystem[normalizedPath]) {
+    const node = fileSystem[normalizedPath];
+    if (node.type === 'directory') {
+      return node;
+    }
+    return null;
+  }
+  
+  // Check for root directory
+  if (normalizedPath === '/') {
+    const rootNode = fileSystem['/'];
+    if (rootNode && rootNode.type === 'directory') {
+      return rootNode;
+    }
     // Fallback: try to find any root directory
     const keys = Object.keys(fileSystem);
     if (keys.length === 0) return null;
     const firstKey = keys[0];
     if (!firstKey) return null;
-    rootKey = firstKey;
-  }
-  
-  // Handle root/home directory
-  if (path === rootKey || path === '/home' || path === '/') {
-    const node = fileSystem[rootKey];
+    const node = fileSystem[firstKey];
     return node && node.type === 'directory' ? node : null;
   }
 
   // Split path into parts and filter out empty strings
-  const parts = path.split('/').filter(Boolean);
+  const parts = normalizedPath.split('/').filter(Boolean);
+  if (parts.length === 0) return null;
+  
+  // Determine root key based on file system structure
+  let rootKey: string;
+  if (fileSystem['/home/neoncloud-user']) {
+    // Local file system
+    rootKey = '/home/neoncloud-user';
+  } else if (fileSystem['/']) {
+    // Server file system with root
+    rootKey = '/';
+  } else if (fileSystem['/home']) {
+    // Server file system starting from /home
+    rootKey = '/home';
+  } else {
+    // Fallback: find first root directory
+    const keys = Object.keys(fileSystem);
+    if (keys.length === 0) return null;
+    rootKey = keys[0] || '/';
+  }
   
   // Start from root directory
   const rootNode = fileSystem[rootKey];
@@ -110,17 +133,25 @@ export function getDirectoryByPath(fileSystem: FileSystem, path: string): Direct
   
   let current: Directory = rootNode;
 
-  // Determine where to start navigating
-  // For local: skip 'home' and 'neoncloud-user' (indices 0 and 1), start at index 2
-  // For server: skip 'home' (index 0), start at index 1
-  const startIndex = rootKey === '/home/neoncloud-user' ? 2 : 1;
-
   // Navigate through path parts
+  // For local: skip 'home' and 'neoncloud-user' (indices 0 and 1), start at index 2
+  // For server: start from index 0 (parts are relative to / or /home)
+  const startIndex = rootKey === '/home/neoncloud-user' ? 2 : (rootKey === '/' ? 0 : 1);
+
   for (let i = startIndex; i < parts.length; i++) {
     const part = parts[i];
     if (!part) continue;
     
+    // Check if current directory has the child
     if (!current.children || !current.children[part]) {
+      // For server file systems with root, also check if it's a top-level directory
+      if (rootKey === '/' && i === 0 && fileSystem[`/${part}`]) {
+        const node = fileSystem[`/${part}`];
+        if (node.type === 'directory') {
+          current = node;
+          continue;
+        }
+      }
       return null;
     }
     
@@ -137,7 +168,7 @@ export function getDirectoryByPath(fileSystem: FileSystem, path: string): Direct
 
 /**
  * Navigate to a path in the file system
- * Handles both local and server file systems
+ * Handles both local and server file systems with realistic Linux paths
  */
 export function navigateToPath(
   fileSystem: FileSystem,
@@ -148,12 +179,14 @@ export function navigateToPath(
   let rootPath: string;
   if (fileSystem['/home/neoncloud-user']) {
     rootPath = '/home/neoncloud-user';
+  } else if (fileSystem['/']) {
+    rootPath = '/';
   } else if (fileSystem['/home']) {
     rootPath = '/home';
   } else {
     // Fallback
     const keys = Object.keys(fileSystem);
-    rootPath = keys[0] || '/home';
+    rootPath = keys[0] || '/';
   }
   
   // Handle absolute paths
