@@ -4,7 +4,7 @@ import { useInventoryStore } from '@/game/state/useInventoryStore';
 import { useMissionStore } from '@/game/state/useMissionStore';
 import { useGameSettingsStore } from '@/game/state/useGameSettingsStore';
 import { getAvailableSoftware, Software } from '@/game/inventory/inventoryTypes';
-import { getAllSoftwareFromTools } from '@/game/tools/toolLoader';
+import { getAllSoftwareFromTools, getToolUpgradePaths } from '@/game/tools/toolLoader';
 import { applyPriceMultiplier } from '@/game/settings/difficultyConfig';
 import { Icon } from '@/components/ui/Icon';
 import './SoftwareStore.css';
@@ -98,12 +98,13 @@ export function SoftwareStore() {
             const canAfford = balance >= adjustedPrice;
             
             // Check if this is an upgrade version and if basic is owned
-            const upgradePaths: Record<string, string> = {
-              'vpn-premium': 'vpn-basic',
-              'password-cracker-advanced': 'password-cracker-basic',
+            // Get upgrade paths from tool modules and storage upgrades
+            const toolUpgradePaths = getToolUpgradePaths();
+            const storageUpgradePaths: Record<string, string> = {
               'storage-upgrade-2': 'storage-upgrade-1',
               'storage-upgrade-3': 'storage-upgrade-2',
             };
+            const upgradePaths = { ...toolUpgradePaths, ...storageUpgradePaths };
             const basicVersionId = upgradePaths[software.id];
             const hasBasicVersion = basicVersionId ? ownsSoftware(basicVersionId) : false;
             const isUpgrade = !!basicVersionId;
