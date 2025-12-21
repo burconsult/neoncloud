@@ -2,7 +2,10 @@ import { missionRegistry } from './MissionModule';
 import { Mission, MissionCategory } from '@/types';
 import { useEmailStore } from '../state/useEmailStore';
 import { useLoreStore } from '../state/useLoreStore';
+import { createLogger } from '../../utils/logger';
 import { welcomeMissionModule } from './modules/01_01_welcome';
+
+const logger = createLogger('MissionLoader');
 import { terminalNavigationMissionModule } from './modules/01_02_terminal_navigation';
 import { networkConnectivityMissionModule } from './modules/01_03_network_connectivity';
 import { networkTopologyMissionModule } from './modules/01_04_network_topology';
@@ -51,11 +54,11 @@ export function loadMissionModules(): void {
  * Handles emails, lore, file system, world entity discovery, etc.
  */
 export async function initializeMission(missionId: string): Promise<void> {
-  const module = missionRegistry.get(missionId);
-  if (!module) {
-    console.warn(`Mission module not found: ${missionId}`);
-    return;
-  }
+      const module = missionRegistry.get(missionId);
+      if (!module) {
+        logger.warn(`Mission module not found: ${missionId}`);
+        return;
+      }
 
   // Discover world entities associated with this mission
   const { worldGraph } = await import('../world/graph/WorldGraph');

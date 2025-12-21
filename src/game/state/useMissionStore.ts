@@ -215,7 +215,7 @@ export const useMissionStore = create<MissionState>()(
       });
       
       if (nextMission) {
-        console.log(`[Mission] Auto-loading next mission: ${nextMission.id} after completing ${missionId}`);
+        logger.debug(`Auto-loading next mission: ${nextMission.id} after completing ${missionId}`);
         
         // Finalize current mission (completion emails, cleanup, etc.)
         await finalizeMission(missionId);
@@ -223,7 +223,7 @@ export const useMissionStore = create<MissionState>()(
         // Start the next mission automatically
         await get().startMission(nextMission.id);
       } else {
-        console.log(`[Mission] No next mission found after completing ${missionId}. Completed missions:`, completedMissions, 'All missions:', allMissions.map(m => ({ id: m.id, prerequisites: m.prerequisites })));
+        logger.debug(`No next mission found after completing ${missionId}`);
         // No more missions, clear current mission
         set({ currentMission: null });
       }

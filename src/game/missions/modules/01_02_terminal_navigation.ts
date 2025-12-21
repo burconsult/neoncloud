@@ -73,5 +73,6 @@ export const terminalNavigationMissionModule: MissionModule = {
 
   // No required software
   requiredSoftware: [],
+  expectedCompletionTime: 10 * 60, // 10 minutes
 };
 

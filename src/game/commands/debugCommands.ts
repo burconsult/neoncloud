@@ -29,8 +29,7 @@ export const testMissionCommand: Command = {
   requiresUnlock: false,
   execute: async (args: string[]): Promise<CommandResult> => {
     // Only allow in development mode
-    // @ts-ignore - import.meta.env.DEV is available in Vite
-    if (!import.meta.env.DEV) {
+    if (!import.meta.env?.DEV) {
       return {
         output: 'This command is only available in development mode.',
         success: false,
@@ -177,8 +176,7 @@ export const listMissionsCommand: Command = {
   requiresUnlock: false,
   execute: (): CommandResult => {
     // Only allow in development mode
-    // @ts-ignore - import.meta.env.DEV is available in Vite
-    if (!import.meta.env.DEV) {
+    if (!import.meta.env?.DEV) {
       return {
         output: 'This command is only available in development mode.',
         success: false,

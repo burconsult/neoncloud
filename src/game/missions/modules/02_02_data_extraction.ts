@@ -155,5 +155,13 @@ export const dataExtractionMissionModule: MissionModule = {
   unlockLore: undefined,
   fileSystemAdditions: undefined,
   requiredSoftware: ['vpn-basic', 'password-cracker-basic', 'log-shredder'],
+  
+  // Expected completion time: 20 minutes
+  expectedCompletionTime: 20 * 60,
+  
+  // Purchase task mapping: which purchases complete which tasks
+  purchaseTaskMapping: {
+    'log-shredder': 'task-3', // Purchase Log Shredder completes task-3
+  },
 };
 

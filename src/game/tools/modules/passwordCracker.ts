@@ -16,6 +16,9 @@ import { useConnectionStore } from '../../state/useConnectionStore';
 import { emitToolUsed } from '../../events/eventBus';
 import { queueToolAction } from '../../time/actionQueue';
 import { useTerminalStore } from '../../state/useTerminalStore';
+import { createLogger } from '../../../utils/logger';
+
+const logger = createLogger('PasswordCracker');
 
 export const passwordCrackerToolModule: ToolModule = {
   toolId: 'password-cracker',
@@ -255,7 +258,7 @@ export const passwordCrackerToolModule: ToolModule = {
                     });
                   }
                 } catch (decryptError) {
-                  console.error('Decryption error:', decryptError);
+                  logger.error('Decryption error:', decryptError);
                   const terminalStore = useTerminalStore.getState();
                   terminalStore.addLine({
                     type: 'error',

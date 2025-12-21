@@ -55,5 +55,6 @@ export const networkTopologyMissionModule: MissionModule = {
   unlockLore: undefined,
   fileSystemAdditions: undefined,
   requiredSoftware: [],
+  expectedCompletionTime: 12 * 60, // 12 minutes
 };
 

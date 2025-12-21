@@ -5,6 +5,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { createLogger } from '../../../utils/logger';
+
+const logger = createLogger('Discovery');
 import { DNSRecord } from '../../network/dnsSimulation';
 
 export type DiscoveryMethod = 'mission' | 'scan' | 'dns-lookup' | 'contact' | 'file-system';
@@ -57,28 +60,28 @@ export const useDiscoveryStore = create<DiscoveryState>()(
         set((state) => ({
           discoveredHosts: new Set(state.discoveredHosts).add(hostId),
         }));
-        console.log(`[Discovery] Host ${hostId} discovered via ${method}`);
+        logger.debug(`Host ${hostId} discovered via ${method}`);
       },
 
       discoverOrganization: (orgId: string, method: DiscoveryMethod = 'mission') => {
         set((state) => ({
           discoveredOrganizations: new Set(state.discoveredOrganizations).add(orgId),
         }));
-        console.log(`[Discovery] Organization ${orgId} discovered via ${method}`);
+        logger.debug(`Organization ${orgId} discovered via ${method}`);
       },
 
       discoverContact: (contactId: string, method: DiscoveryMethod = 'mission') => {
         set((state) => ({
           discoveredContacts: new Set(state.discoveredContacts).add(contactId),
         }));
-        console.log(`[Discovery] Contact ${contactId} discovered via ${method}`);
+        logger.debug(`Contact ${contactId} discovered via ${method}`);
       },
 
       discoverVendor: (vendorId: string, method: DiscoveryMethod = 'mission') => {
         set((state) => ({
           discoveredVendors: new Set(state.discoveredVendors).add(vendorId),
         }));
-        console.log(`[Discovery] Vendor ${vendorId} discovered via ${method}`);
+        logger.debug(`Vendor ${vendorId} discovered via ${method}`);
       },
 
       recordDNSLookup: (domain: string, records: DNSRecord[]) => {

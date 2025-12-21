@@ -149,9 +149,10 @@ export class WorldGraph {
    * Get all hosts that can be discovered via a specific method
    */
   getHostsByDiscoveryMethod(method: string): Host[] {
-    return worldRegistry.getAllHosts().filter(host =>
-      host.discoveryMethods.includes(method as any)
-    );
+    return worldRegistry.getAllHosts().filter(host => {
+      // Type-safe check: ensure method is in the array
+      return host.discoveryMethods.includes(method as Host['discoveryMethods'][number]);
+    });
   }
 
   /**

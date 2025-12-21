@@ -2,6 +2,9 @@ import { Mission } from '@/types';
 import { Email } from '@/types/email';
 import { LoreEntry } from '@/types/email';
 import { FileSystem } from '@/types';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('MissionRegistry');
 
 /**
  * Mission Module Interface
@@ -55,6 +58,19 @@ export interface MissionModule {
   requiredSoftware?: string[];
 
   /**
+   * Expected completion time in real-time seconds
+   * Used for speed bonus calculations
+   * If not provided, defaults to 15 minutes
+   */
+  expectedCompletionTime?: number;
+
+  /**
+   * Mapping of software IDs to task IDs that complete when software is purchased
+   * Example: { 'vpn-basic': 'task-2' } means purchasing vpn-basic completes task-2
+   */
+  purchaseTaskMapping?: Record<string, string>;
+
+  /**
    * Optional initialization function called when mission starts
    * Can be used for custom setup logic
    */
@@ -79,7 +95,7 @@ class MissionRegistry {
    */
   register(module: MissionModule): void {
     if (this.modules.has(module.missionId)) {
-      console.warn(`Mission module ${module.missionId} is already registered. Overwriting...`);
+      logger.warn(`Mission module ${module.missionId} is already registered. Overwriting...`);
     }
     this.modules.set(module.missionId, module);
   }

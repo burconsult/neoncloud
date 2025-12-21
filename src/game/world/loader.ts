@@ -4,11 +4,14 @@
  */
 
 import { worldRegistry } from './registry/WorldRegistry';
+import { createLogger } from '../../utils/logger';
 
 // Import all entities
 import { neoncloudOrg, megacorpOrg } from './entities/organizations';
 import { agentSmithContact } from './entities/contacts';
 import { localhostHost, server01Host, server02Host } from './entities/hosts';
+
+const logger = createLogger('WorldLoader');
 
 /**
  * Load all world entities into the registry
@@ -31,11 +34,11 @@ export function loadWorldEntities(): void {
   worldRegistry.registerHost(server01Host);
   worldRegistry.registerHost(server02Host);
 
-  console.log('[World] Loaded world entities:', {
-    organizations: worldRegistry.getAllOrganizations().length,
-    contacts: worldRegistry.getAllContacts().length,
-    hosts: worldRegistry.getAllHosts().length,
-  });
+      logger.debug('Loaded world entities', {
+        organizations: worldRegistry.getAllOrganizations().length,
+        contacts: worldRegistry.getAllContacts().length,
+        hosts: worldRegistry.getAllHosts().length,
+      });
 }
 
 /**

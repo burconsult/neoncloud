@@ -6,6 +6,9 @@ import { useMissionStore } from './useMissionStore';
 import { useGameSettingsStore } from './useGameSettingsStore';
 import { toolRegistry } from '../tools/ToolModule';
 import { applyPriceMultiplier } from '../settings/difficultyConfig';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('Inventory');
 
 interface InventoryState {
   ownedSoftware: string[]; // Array of software IDs
@@ -58,12 +61,12 @@ export const useInventoryStore = create<InventoryState>()(
         }
 
         // Check vendor access requirements
-        // Note: Currently only logs warnings, full validation can be added later
+        // Note: Currently only logs, full validation can be added later
         // For now, vendorId is primarily for organization/reference
         if (toolModule?.vendorId && toolModule.vendorId !== 'neoncloud') {
           // TODO: Implement full vendor access requirement checking
           // This would require async imports and more complex validation
-          console.log(`[Purchase] Tool ${softwareId} is sold by vendor: ${toolModule.vendorId}`);
+          logger.debug(`Tool ${softwareId} is sold by vendor: ${toolModule.vendorId}`);
         }
         
         // Apply difficulty multiplier to price
@@ -102,33 +105,20 @@ export const useInventoryStore = create<InventoryState>()(
         const currentMission = missionStore.currentMission;
 
         if (currentMission) {
-          // Map software IDs to task IDs that should complete when purchased
-          const purchaseTaskMap: Record<string, Record<string, string>> = {
-            'n00b-01': {
-              'vpn-basic': 'task-2', // Purchase a Basic VPN
-              'password-cracker-basic': 'task-4', // Purchase password cracker
-            },
-            'n00b-02': {
-              'log-shredder': 'task-3', // Purchase Log Shredder
-            },
-          };
+          // Get purchase task mapping from mission module (dynamic import to avoid circular deps)
+          import('../missions/MissionModule').then(({ missionRegistry }) => {
+            const missionModule = missionRegistry.get(currentMission.id);
+            const taskId = missionModule?.purchaseTaskMapping?.[softwareId];
 
-          const missionTaskMap = purchaseTaskMap[currentMission.id];
-          const taskId = missionTaskMap?.[softwareId];
-
-          if (taskId) {
-            // Check if this task hasn't been completed yet
-            if (!missionStore.isTaskCompleted(currentMission.id, taskId)) {
-              console.log(`[Purchase] Completing task ${taskId} for mission ${currentMission.id} (purchased ${softwareId})`);
-              missionStore.completeTask(currentMission.id, taskId);
-            } else {
-              console.log(`[Purchase] Task ${taskId} for mission ${currentMission.id} already completed`);
+            if (taskId) {
+              // Check if this task hasn't been completed yet
+              if (!missionStore.isTaskCompleted(currentMission.id, taskId)) {
+                missionStore.completeTask(currentMission.id, taskId);
+              }
             }
-          } else {
-            console.log(`[Purchase] No task mapping for software ${softwareId} in mission ${currentMission.id}`);
-          }
-        } else {
-          console.log('[Purchase] No current mission active');
+          }).catch(() => {
+            // Silently fail if mission registry not available
+          });
         }
 
         return true;

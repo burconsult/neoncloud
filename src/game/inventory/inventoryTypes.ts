@@ -113,14 +113,19 @@ export function getAvailableSoftware(
   // Only return non-tool catalog items (storage upgrades, etc.)
   // Tools are handled by tool modules
   
+  // Note: Upgrade paths for tools are handled in tool modules
+  // Storage upgrade paths are hardcoded here since they're not tool modules
+  const storageUpgradePaths: Record<string, string> = {
+    'storage-upgrade-2': 'storage-upgrade-1',
+    'storage-upgrade-3': 'storage-upgrade-2',
+  };
+  
+  // For tools, check tool modules dynamically (async would be cleaner but this function is sync)
+  // For now, we'll handle tool upgrade paths in the UI/store layer where we have access to tool modules
+  
   return SOFTWARE_CATALOG.filter(software => {
-    // Define upgrade paths: premium versions that require basic versions
-    const upgradePaths: Record<string, string> = {
-      'vpn-premium': 'vpn-basic',
-      'password-cracker-advanced': 'password-cracker-basic',
-      'storage-upgrade-2': 'storage-upgrade-1',
-      'storage-upgrade-3': 'storage-upgrade-2',
-    };
+    // Use storage upgrade paths (tool upgrade paths handled separately)
+    const upgradePaths = storageUpgradePaths;
 
     // Check if this is a premium/upgrade version
     const basicVersionId = upgradePaths[software.id];

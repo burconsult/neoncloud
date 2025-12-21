@@ -66,5 +66,6 @@ export const dnsExplorationMissionModule: MissionModule = {
   unlockLore: undefined,
   fileSystemAdditions: undefined,
   requiredSoftware: [],
+  expectedCompletionTime: 15 * 60, // 15 minutes
 };
 

@@ -66,5 +66,6 @@ export const networkConnectivityMissionModule: MissionModule = {
   unlockLore: undefined,
   fileSystemAdditions: undefined,
   requiredSoftware: [],
+  expectedCompletionTime: 10 * 60, // 10 minutes
 };
 

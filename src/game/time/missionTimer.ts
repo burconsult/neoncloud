@@ -7,26 +7,31 @@
 
 import { applyMissionTimeMultiplier } from '../settings/difficultyConfig';
 import { useGameSettingsStore } from '../state/useGameSettingsStore';
-
-/**
- * Expected completion times for missions (in real-time seconds)
- * Used to calculate speed bonuses
- */
-export const MISSION_EXPECTED_TIMES: Record<string, number> = {
-  'welcome-00': 5 * 60,      // 5 minutes - welcome/tutorial
-  'tutorial-01': 10 * 60,    // 10 minutes - terminal navigation
-  'network-01': 10 * 60,     // 10 minutes - network connectivity
-  'network-02': 12 * 60,     // 12 minutes - network topology
-  'network-03': 15 * 60,     // 15 minutes - DNS exploration
-  'n00b-01': 15 * 60,        // 15 minutes - first hack
-  // Add more as missions are created
-};
+import { missionRegistry } from '../missions/MissionModule';
 
 /**
  * Get expected completion time for a mission (adjusted by difficulty)
+ * First checks mission module for expectedCompletionTime, then falls back to defaults
  */
 export function getExpectedCompletionTime(missionId: string): number {
-  const baseTime = MISSION_EXPECTED_TIMES[missionId] || 15 * 60; // Default 15 minutes
+  // Try to get from mission module first
+  const missionModule = missionRegistry.get(missionId);
+  if (missionModule?.expectedCompletionTime) {
+    const baseTime = missionModule.expectedCompletionTime;
+    const difficulty = useGameSettingsStore.getState().difficulty;
+    return applyMissionTimeMultiplier(baseTime, difficulty);
+  }
+  
+  // Fallback to default times for missions without explicit times
+  const DEFAULT_TIMES: Record<string, number> = {
+    'welcome-00': 5 * 60,      // 5 minutes - welcome/tutorial
+    'tutorial-01': 10 * 60,    // 10 minutes - terminal navigation
+    'network-01': 10 * 60,     // 10 minutes - network connectivity
+    'network-02': 12 * 60,     // 12 minutes - network topology
+    'network-03': 15 * 60,     // 15 minutes - DNS exploration
+  };
+  
+  const baseTime = DEFAULT_TIMES[missionId] || 15 * 60; // Default 15 minutes
   const difficulty = useGameSettingsStore.getState().difficulty;
   return applyMissionTimeMultiplier(baseTime, difficulty);
 }

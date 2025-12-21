@@ -12,6 +12,9 @@
 
 import { Command } from '@/types';
 import { Software } from '../inventory/inventoryTypes';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('ToolRegistry');
 
 /**
  * Tool duration definition
@@ -79,7 +82,7 @@ class ToolRegistry {
    */
   register(module: ToolModule): void {
     if (this.modules.has(module.toolId)) {
-      console.warn(`Tool module ${module.toolId} is already registered. Overwriting...`);
+      logger.warn(`Tool module ${module.toolId} is already registered. Overwriting...`);
     }
     this.modules.set(module.toolId, module);
   }
@@ -140,7 +143,7 @@ class ToolRegistry {
       }
     }
     
-    console.warn(`Tool duration not found for software: ${softwareId}, using default 5s`);
+    logger.warn(`Tool duration not found for software: ${softwareId}, using default 5s`);
     return 5; // Default
   }
 

@@ -1,6 +1,9 @@
 import { MissionModule } from '../MissionModule';
 import { createWelcomeEmail } from '../../emails/emailTemplates';
 import { loreEntries } from '../../lore/loreEntries';
+import { createLogger } from '../../../utils/logger';
+
+const logger = createLogger('WelcomeMission');
 
 /**
  * Welcome Mission Module
@@ -75,7 +78,7 @@ export const welcomeMissionModule: MissionModule = {
     if (!inventoryStore.ownsSoftware('network-scanner-basic')) {
       // Add directly to inventory (this is a gift from NeonCloud, not a purchase)
       inventoryStore.ownedSoftware.push('network-scanner-basic');
-      console.log('[Welcome Mission] Granted Basic Network Scanner to new agent');
+        logger.debug('Granted Basic Network Scanner to new agent');
     }
   },
 };

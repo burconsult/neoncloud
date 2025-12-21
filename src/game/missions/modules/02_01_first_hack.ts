@@ -150,5 +150,14 @@ export const firstHackMissionModule: MissionModule = {
   unlockLore: undefined,
   fileSystemAdditions: undefined,
   requiredSoftware: ['network-scanner-basic', 'vpn-basic', 'password-cracker-basic'],
+  
+  // Expected completion time: 15 minutes
+  expectedCompletionTime: 15 * 60,
+  
+  // Purchase task mapping: which purchases complete which tasks
+  purchaseTaskMapping: {
+    'vpn-basic': 'task-3', // Purchase VPN completes task-3
+    'password-cracker-basic': 'task-6', // Purchase password cracker completes task-6
+  },
 };
 
