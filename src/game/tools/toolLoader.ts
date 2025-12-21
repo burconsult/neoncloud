@@ -11,6 +11,7 @@ import { toolRegistry } from './ToolModule';
 import { vpnToolModule } from './modules/vpn';
 import { passwordCrackerToolModule } from './modules/passwordCracker';
 import { logShredderToolModule } from './modules/logShredder';
+import { networkScannerToolModule } from './modules/networkScanner';
 
 /**
  * Load all tool modules
@@ -31,6 +32,7 @@ export function loadToolModules(): void {
   toolRegistry.register(vpnToolModule);
   toolRegistry.register(passwordCrackerToolModule);
   toolRegistry.register(logShredderToolModule);
+  toolRegistry.register(networkScannerToolModule);
 
   // Initialize all modules
   toolRegistry.getAll().forEach(module => {

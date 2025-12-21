@@ -65,5 +65,18 @@ export const welcomeMissionModule: MissionModule = {
 
   // No required software for this mission
   requiredSoftware: [],
+  
+  // Grant basic Network Scanner to new agents (NeonCloud provides it)
+  onStart: async () => {
+    const { useInventoryStore } = await import('../../state/useInventoryStore');
+    const inventoryStore = useInventoryStore.getState();
+    
+    // Grant Network Scanner Basic to new agents (NeonCloud provides it)
+    if (!inventoryStore.ownsSoftware('network-scanner-basic')) {
+      // Add directly to inventory (this is a gift from NeonCloud, not a purchase)
+      inventoryStore.ownedSoftware.push('network-scanner-basic');
+      console.log('[Welcome Mission] Granted Basic Network Scanner to new agent');
+    }
+  },
 };
 

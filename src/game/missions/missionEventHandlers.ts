@@ -175,8 +175,8 @@ export function registerMissionEventHandlers(): void {
       }
       
       // Match disconnect tasks based on mission and task ID
-      // For n00b-01 task-8: disconnect from server-01
-      if (currentMission.id === 'n00b-01' && task.id === 'task-8') {
+          // For n00b-01 task-9: disconnect from server-01
+          if (currentMission.id === 'n00b-01' && task.id === 'task-9') {
         if (event.serverId === 'server-01') {
           missionStore.completeTask(currentMission.id, task.id);
         }

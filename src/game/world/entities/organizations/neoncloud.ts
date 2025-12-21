@@ -22,7 +22,15 @@ export const neoncloudOrg: Organization = {
   hostIds: [], // NeonCloud hosts can be added later
   contactIds: ['agent-smith'], // Main handler contact
   
-  vendorInfo: null,
+  // NeonCloud provides basic tools to its agents
+  vendorInfo: {
+    toolIds: ['network-scanner-basic'], // Basic Network Scanner provided to new agents
+    pricingMultiplier: 1.0,
+    accessRequirements: {
+      requiresVpn: false,
+      requiresMission: [],
+    },
+  },
   
   missionIds: ['welcome-00', 'n00b-01', 'n00b-02'], // Missions involving NeonCloud
   

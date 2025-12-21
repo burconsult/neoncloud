@@ -38,6 +38,19 @@ export const firstHackMissionModule: MissionModule = {
       },
       {
         id: 'task-2',
+        description: 'Scan the Megacorp network to discover hosts',
+        type: 'command',
+        objective: 'Use the Network Scanner to scan the Megacorp network (192.168.1.0/24) and discover active hosts',
+        hints: [
+          'The email mentions Megacorp network: 192.168.1.0/24',
+          'Use "scan 192.168.1.0/24" to scan the network range',
+          'This will discover server-01 and other active hosts',
+        ],
+        solution: 'scan 192.168.1.0/24',
+        reward: 30,
+      },
+      {
+        id: 'task-3',
         description: 'Purchase a Basic VPN',
         type: 'learn',
         objective: 'Buy a Basic VPN from the store',
@@ -50,7 +63,7 @@ export const firstHackMissionModule: MissionModule = {
         reward: 20,
       },
       {
-        id: 'task-3',
+        id: 'task-4',
         description: 'Connect to the VPN',
         type: 'command',
         objective: 'Use the VPN to hide your IP address',
@@ -62,7 +75,7 @@ export const firstHackMissionModule: MissionModule = {
         reward: 20,
       },
       {
-        id: 'task-4',
+        id: 'task-6',
         description: 'Purchase a Basic Password Cracker',
         type: 'learn',
         objective: 'Buy a Basic Password Cracker from the store',
@@ -88,7 +101,7 @@ export const firstHackMissionModule: MissionModule = {
         reward: 30,
       },
       {
-        id: 'task-6',
+        id: 'task-7',
         description: 'Connect to server-01',
         type: 'command',
         objective: 'Connect to server-01 using the extracted credentials',
@@ -101,7 +114,7 @@ export const firstHackMissionModule: MissionModule = {
         reward: 30,
       },
       {
-        id: 'task-7',
+        id: 'task-8',
         description: 'Read secret.txt on server-01',
         type: 'command',
         objective: 'Read the secret file in /home/data/secret.txt on server-01',
@@ -114,7 +127,7 @@ export const firstHackMissionModule: MissionModule = {
         reward: 50,
       },
       {
-        id: 'task-8',
+        id: 'task-9',
         description: 'Disconnect from server-01',
         type: 'command',
         objective: 'Disconnect from server-01 after completing the mission',
@@ -137,6 +150,6 @@ export const firstHackMissionModule: MissionModule = {
   completionEmails: undefined,
   unlockLore: undefined,
   fileSystemAdditions: undefined,
-  requiredSoftware: ['vpn-basic', 'password-cracker-basic'],
+  requiredSoftware: ['network-scanner-basic', 'vpn-basic', 'password-cracker-basic'],
 };
 

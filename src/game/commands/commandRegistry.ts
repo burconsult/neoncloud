@@ -368,12 +368,12 @@ export const createCommandRegistry = (): Map<string, Command> => {
     saveCommand,
     loadCommand,
     loadFileCommand,
-    // Debug commands (only work in development mode)
-    testMissionCommand,
-    listMissionsCommand,
-    // Add commands from tool modules
+  // Debug commands (only work in development mode)
+  testMissionCommand,
+  listMissionsCommand,
+    // Add commands from tool modules (includes network scanner)
     ...toolCommands,
-  ];
+];
 
   commands.forEach((command) => {
     registry.set(command.name.toLowerCase(), command);
