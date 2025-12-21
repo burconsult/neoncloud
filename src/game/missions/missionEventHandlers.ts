@@ -76,9 +76,9 @@ export function registerMissionEventHandlers(): void {
         const fileSystemStore = useFileSystemStore.getState();
         const activeServerId = fileSystemStore.activeServerId;
         
-        // For n00b-01 task-7: reading secret.txt on server-01
+        // For n00b-01 task-8: reading secret.txt on server-01
         // Must be exactly 'secret.txt' (not a substring match like 'credentials.enc' containing something)
-        if (currentMission.id === 'n00b-01' && task.id === 'task-7') {
+        if (currentMission.id === 'n00b-01' && task.id === 'task-8') {
           // Check exact filename match and server
           if (activeServerId === 'server-01' && event.filename === 'secret.txt') {
             // Also verify the path contains /home/data to ensure it's the correct file location
