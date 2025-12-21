@@ -1,6 +1,6 @@
 import { Mission } from '@/types';
 import { useMissionStore } from '../state/useMissionStore';
-import { getAllMissions, getMissionById } from './missionDefinitions';
+import { getAllMissions, getMissionById } from './missionLoader';
 
 /**
  * Get the current mission progress

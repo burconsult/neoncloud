@@ -296,15 +296,14 @@ export const passwordCrackerToolModule: ToolModule = {
               },
             };
           } else if (isEncryptedContent(fileResult.content)) {
-            // Legacy encrypted content handling
-            // (Similar logic but for legacy format - can be simplified later)
+            // Encrypted content without password property
             return {
               output: [
-                `File ${target} appears to be encrypted (legacy format).`,
-                'Decryption for legacy format files is not yet fully supported.',
+                `File ${target} appears to be encrypted.`,
+                'This file format is not supported for decryption.',
               ],
               success: false,
-              error: 'Legacy format not supported',
+              error: 'Unsupported format',
             };
           }
         }

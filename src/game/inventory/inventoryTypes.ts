@@ -285,11 +285,8 @@ export function getAvailableSoftware(
   completedMissions: string[],
   ownedSoftwareIds: string[] = []
 ): Software[] {
-  // Get software from tool modules (new system)
-  // Note: We can't dynamically import here due to circular dependencies
-  // Tool modules should already be loaded in main.tsx before this is called
-  // For now, we'll use the legacy catalog and tool modules will override via registry
-  // TODO: Refactor to properly merge tool modules and legacy catalog
+  // Tool modules are checked separately via getAllSoftwareFromTools() from toolLoader
+  // This function provides software from the catalog for non-tool-module items
   
   return SOFTWARE_CATALOG.filter(software => {
     // Define upgrade paths: premium versions that require basic versions

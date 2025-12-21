@@ -1,11 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMissionStore } from '@/game/state/useMissionStore';
 import { useMissionPanelStore } from '@/game/state/useMissionPanelStore';
-import { getAllMissions } from '@/game/missions/missionLoader';
-import { 
-  getMissionCategories,
-  getCategoryDisplayName 
-} from '@/game/missions/missionDefinitions';
+import { getAllMissions, getMissionCategories, getCategoryDisplayName } from '@/game/missions/missionLoader';
 import { MissionCategory } from '@/types';
 import { Icon } from '@/components/ui/Icon';
 import './MissionPanel.css';

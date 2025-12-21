@@ -71,13 +71,13 @@ export const TOOL_DURATIONS: Record<string, ToolDuration> = {
  * @param isPremium Whether the premium/advanced version is being used
  * @returns Duration in real-time seconds
  * 
- * NOTE: This function now checks tool modules first, then falls back to legacy TOOL_DURATIONS.
- * Prefer using tool modules directly.
+ * Get tool duration based on tool ID and version.
+ * Tool modules handle their own durations when tools are executed.
  */
 export function getToolDuration(toolId: string, isPremium: boolean = false): number {
   let baseDuration: number;
   
-  // Use legacy duration definitions (tool modules handle their own durations)
+  // Use duration definitions
   const duration = TOOL_DURATIONS[toolId];
   if (!duration) {
     console.warn(`Tool duration not found for: ${toolId}, using default 5s`);
@@ -119,11 +119,11 @@ function isPremiumSoftware(softwareId: string): boolean {
  * @param softwareId Software ID from inventory (e.g., 'vpn-basic', 'vpn-premium')
  * @returns Duration in real-time seconds
  * 
- * NOTE: This function now uses tool modules directly instead of mapping.
+ * Get tool duration from software ID.
+ * Tool modules handle their own durations when tools are executed.
  */
 export function getToolDurationFromSoftware(softwareId: string): number {
-  // Map software ID to tool ID and use legacy durations
-  // Tool modules handle their own durations when tools are executed
+  // Map software ID to tool ID and use duration definitions
   const toolId = SOFTWARE_TO_TOOL_MAP[softwareId];
   let baseDuration: number;
   

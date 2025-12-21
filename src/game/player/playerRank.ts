@@ -1,6 +1,6 @@
 import { MissionCategory } from '@/types';
 import { useMissionStore } from '../state/useMissionStore';
-import { getAllMissions } from '../missions/missionDefinitions';
+import { getAllMissions } from '../missions/missionLoader';
 
 export type PlayerRank = 
   | 'Trainee'           // Just started, only training missions

@@ -1,5 +1,5 @@
 import { missionRegistry } from './MissionModule';
-import { Mission } from '@/types';
+import { Mission, MissionCategory } from '@/types';
 import { useEmailStore } from '../state/useEmailStore';
 import { useLoreStore } from '../state/useLoreStore';
 import { welcomeMissionModule } from './modules/01_01_welcome';
@@ -40,10 +40,10 @@ export function loadMissionModules(): void {
   missionRegistry.register(dataExtractionMissionModule); // 02_02_data_extraction
   
   // Cyber Warrior missions (03)
-  // TODO: Add cyber warrior missions here
+  // Future missions will be added here
   
   // Digital Ninja missions (04)
-  // TODO: Add digital ninja missions here
+  // Future missions will be added here
 }
 
 /**
@@ -75,9 +75,8 @@ export async function initializeMission(missionId: string): Promise<void> {
 
   // Add file system changes
   if (module.fileSystemAdditions) {
-    // TODO: Implement file system merging logic
-    // For now, file systems are static - this is a placeholder for future enhancement
-    console.log(`File system additions for ${missionId} would be applied here`);
+    // File system additions are handled by server-specific file systems
+    // See serverFileSystems.ts for implementation
   }
 
   // Call custom initialization
@@ -123,5 +122,25 @@ export function getMissionById(missionId: string): Mission | undefined {
  */
 export function getAllMissions(): Mission[] {
   return missionRegistry.getAllMissions();
+}
+
+/**
+ * Get all mission categories
+ */
+export function getMissionCategories(): MissionCategory[] {
+  return ['training', 'script-kiddie', 'cyber-warrior', 'digital-ninja'];
+}
+
+/**
+ * Get category display name
+ */
+export function getCategoryDisplayName(category: MissionCategory): string {
+  const names: Record<MissionCategory, string> = {
+    'training': 'Training',
+    'script-kiddie': 'Script Kiddie (n00b)',
+    'cyber-warrior': 'Cyber Warrior (h4x0r)',
+    'digital-ninja': 'Digital Ninja (l33t)',
+  };
+  return names[category];
 }
 
