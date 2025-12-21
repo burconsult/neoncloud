@@ -53,6 +53,23 @@ export function getAllSoftwareFromTools() {
 }
 
 /**
+ * Get upgrade path mapping for tools (premium -> basic)
+ * This allows the UI to check if a premium version requires a basic version
+ */
+export function getToolUpgradePaths(): Record<string, string> {
+  const upgradePaths: Record<string, string> = {};
+  
+  toolRegistry.getAll().forEach(module => {
+    // If tool has both basic and premium versions, map premium -> basic
+    if (module.basicSoftware && module.premiumSoftware) {
+      upgradePaths[module.premiumSoftware.id] = module.basicSoftware.id;
+    }
+  });
+  
+  return upgradePaths;
+}
+
+/**
  * Get tool duration by software ID
  * Returns difficulty-adjusted duration in real-time seconds
  */
