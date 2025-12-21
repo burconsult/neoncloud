@@ -35,7 +35,10 @@ export function loadToolModules(): void {
   // Initialize all modules
   toolRegistry.getAll().forEach(module => {
     if (module.onInit) {
-      module.onInit().catch(console.error);
+      const initResult = module.onInit();
+      if (initResult && typeof initResult.catch === 'function') {
+        initResult.catch(console.error);
+      }
     }
   });
 }

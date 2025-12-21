@@ -24,6 +24,7 @@ class ActionQueue {
   private startTime: number | null = null;
   private animationFrameId: number | null = null;
   private progressListeners: Set<(action: QueuedAction | null) => void> = new Set();
+  private currentProgress: { progress: number; remaining: number } | null = null;
 
   /**
    * Add an action to the queue
@@ -169,6 +170,7 @@ class ActionQueue {
     const index = this.queue.findIndex(a => a.id === actionId);
     if (index !== -1) {
       const action = this.queue[index];
+      if (!action) return false;
       this.queue.splice(index, 1);
       
       if (action.onCancel) {

@@ -146,7 +146,6 @@ export const dataExtractionMissionModule: MissionModule = {
     prerequisites: ['n00b-01'],
     unlocks: [],
     reward: 400,
-    expectedCompletionTime: 180, // 3 minutes expected
   },
 
   // Email sent when mission starts

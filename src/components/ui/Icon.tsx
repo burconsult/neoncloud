@@ -41,7 +41,7 @@ import {
 /**
  * Icon name mapping to actual icon components
  */
-const iconMap: Record<string, React.ComponentType<{ className?: string; size?: number; color?: string; style?: React.CSSProperties }>> = {
+const iconMap: Record<string, React.ComponentType<any>> = {
   // Command icons
   'help': HelpCircle,
   'echo': MessageSquare,

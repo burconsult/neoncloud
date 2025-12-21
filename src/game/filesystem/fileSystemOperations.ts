@@ -52,7 +52,7 @@ export async function addEmailAttachmentToFileSystem(
     try {
       // Extract server ID from filename (e.g., "server-01-credentials.enc" -> "server-01")
       const serverIdMatch = attachment.filename.match(/(server-\d+)/);
-      const serverId = serverIdMatch ? serverIdMatch[1] : 'server-01';
+      const serverId: string = serverIdMatch ? serverIdMatch[1] : 'server-01';
       
       // Extract server number for display (e.g., "server-01" -> "01")
       const serverNumber = serverId.replace('server-', '');

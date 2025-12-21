@@ -46,6 +46,13 @@ export const nslookupCommand: Command = {
     }
 
     const domain = args[0];
+    if (!domain || typeof domain !== 'string') {
+      return {
+        output: 'Usage: nslookup <domain> [record-type]',
+        success: false,
+        error: 'Missing domain',
+      };
+    }
     const recordType = args.length > 1 ? args[1] : undefined;
 
     const { records, found } = lookupDNS(domain, recordType);

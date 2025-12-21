@@ -45,6 +45,13 @@ export const tracerouteCommand: Command = {
     }
 
     const hostQuery = args[0];
+    if (!hostQuery || typeof hostQuery !== 'string') {
+      return {
+        output: 'Usage: traceroute <hostname>',
+        success: false,
+        error: 'Missing hostname',
+      };
+    }
     const host = findHost(hostQuery);
 
     if (!host) {

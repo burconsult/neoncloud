@@ -77,35 +77,13 @@ export const TOOL_DURATIONS: Record<string, ToolDuration> = {
 export function getToolDuration(toolId: string, isPremium: boolean = false): number {
   let baseDuration: number;
   
-  // First try tool modules (new system)
-  try {
-    const { toolRegistry } = require('../tools/ToolModule');
-    const module = toolRegistry.get(toolId);
-    if (module) {
-      if (isPremium && module.duration.premium !== undefined) {
-        baseDuration = module.duration.premium;
-      } else {
-        baseDuration = module.duration.basic;
-      }
-    } else {
-      // Fall back to legacy duration definitions
-      const duration = TOOL_DURATIONS[toolId];
-      if (!duration) {
-        console.warn(`Tool duration not found for: ${toolId}, using default 5s`);
-        baseDuration = 5;
-      } else {
-        baseDuration = isPremium && duration.premium !== undefined ? duration.premium : duration.basic;
-      }
-    }
-  } catch (e) {
-    // Tool modules not loaded yet, fall back to legacy
-    const duration = TOOL_DURATIONS[toolId];
-    if (!duration) {
-      console.warn(`Tool duration not found for: ${toolId}, using default 5s`);
-      baseDuration = 5;
-    } else {
-      baseDuration = isPremium && duration.premium !== undefined ? duration.premium : duration.basic;
-    }
+  // Use legacy duration definitions (tool modules handle their own durations)
+  const duration = TOOL_DURATIONS[toolId];
+  if (!duration) {
+    console.warn(`Tool duration not found for: ${toolId}, using default 5s`);
+    baseDuration = 5;
+  } else {
+    baseDuration = isPremium && duration.premium !== undefined ? duration.premium : duration.basic;
   }
   
   // Apply difficulty multiplier
@@ -144,43 +122,22 @@ function isPremiumSoftware(softwareId: string): boolean {
  * NOTE: This function now uses tool modules directly instead of mapping.
  */
 export function getToolDurationFromSoftware(softwareId: string): number {
+  // Map software ID to tool ID and use legacy durations
+  // Tool modules handle their own durations when tools are executed
+  const toolId = SOFTWARE_TO_TOOL_MAP[softwareId];
   let baseDuration: number;
   
-  // First try tool modules (new system)
-  try {
-    const { toolRegistry } = require('../tools/ToolModule');
-    baseDuration = toolRegistry.getDurationBySoftwareId(softwareId);
-    if (!(baseDuration !== 5 || softwareId.includes('vpn') || softwareId.includes('password') || softwareId.includes('shredder'))) {
-      // If duration doesn't match known tools, fall back to legacy
-      const toolId = SOFTWARE_TO_TOOL_MAP[softwareId];
-      if (!toolId) {
-        console.warn(`No tool mapping found for software: ${softwareId}, using default 5s`);
-        baseDuration = 5;
-      } else {
-        const isPremium = isPremiumSoftware(softwareId);
-        // Get base duration (before difficulty multiplier) from legacy
-        const duration = TOOL_DURATIONS[toolId];
-        if (!duration) {
-          baseDuration = 5;
-        } else {
-          baseDuration = isPremium && duration.premium !== undefined ? duration.premium : duration.basic;
-        }
-      }
-    }
-  } catch (e) {
-    // Tool modules not loaded yet, fall back to legacy
-    const toolId = SOFTWARE_TO_TOOL_MAP[softwareId];
-    if (!toolId) {
-      console.warn(`No tool mapping found for software: ${softwareId}, using default 5s`);
+  if (!toolId) {
+    console.warn(`No tool mapping found for software: ${softwareId}, using default 5s`);
+    baseDuration = 5;
+  } else {
+    const isPremium = isPremiumSoftware(softwareId);
+    // Get base duration (before difficulty multiplier) from legacy
+    const duration = TOOL_DURATIONS[toolId];
+    if (!duration) {
       baseDuration = 5;
     } else {
-      const isPremium = isPremiumSoftware(softwareId);
-      const duration = TOOL_DURATIONS[toolId];
-      if (!duration) {
-        baseDuration = 5;
-      } else {
-        baseDuration = isPremium && duration.premium !== undefined ? duration.premium : duration.basic;
-      }
+      baseDuration = isPremium && duration.premium !== undefined ? duration.premium : duration.basic;
     }
   }
   

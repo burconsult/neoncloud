@@ -100,6 +100,8 @@ export const logShredderToolModule: ToolModule = {
       }
 
       const duration = logShredderToolModule.duration.basic;
+      const fullPath = resolveResult.fullPath;
+      const filename = resolveResult.filename;
 
       // Queue the shredding action
       queueToolAction(
@@ -110,8 +112,8 @@ export const logShredderToolModule: ToolModule = {
           // Simulate shredding by clearing content and marking as shredded
           const updateResult = updateFileContent(
             fileSystem,
-            resolveResult.fullPath!,
-            resolveResult.filename!,
+            fullPath,
+            filename,
             '[LOGS SHREDDED]'
           );
 

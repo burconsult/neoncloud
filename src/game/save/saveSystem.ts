@@ -32,7 +32,7 @@ export interface GameSaveData {
       amount: number;
       description: string;
       timestamp: number;
-      category?: string;
+      category?: 'achievement' | 'mission' | 'task' | 'bonus' | 'purchase';
     }>;
   };
   inventory: {
@@ -47,10 +47,7 @@ export interface GameSaveData {
   };
   challenge: {
     isRoot: boolean;
-    currentChallenge: {
-      question: string;
-      answer: number;
-    } | null;
+    currentChallenge: import('../challenges/challengeGenerator').Challenge | null;
     attempts: number;
     rootPassword: string | null;
   };
