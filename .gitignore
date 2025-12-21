@@ -26,6 +26,13 @@ dist-ssr
 # Testing
 coverage
 .nyc_output
+playwright-report/
+test-results/
+*.test.log
+test-output.log
+
+# MCP/Playwright artifacts
+.playwright-mcp/
 
 # Environment variables
 .env
@@ -36,4 +43,5 @@ coverage
 # Build outputs
 build
 out
+dist
 
