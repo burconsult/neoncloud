@@ -4,6 +4,7 @@ import App from './App';
 import { loadMissionModules } from './game/missions/missionLoader';
 import { loadToolModules } from './game/tools/toolLoader';
 import { loadWorldEntities, initializeDiscoveryState } from './game/world/loader';
+import { loadChallengeGenerators } from './game/challenges/challengeLoader';
 import './styles/index.css';
 import './styles/diagrams.css';
 
@@ -18,6 +19,9 @@ loadMissionModules();
 
 // Load all tool modules at application startup
 loadToolModules();
+
+// Load all challenge generators at application startup
+loadChallengeGenerators();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

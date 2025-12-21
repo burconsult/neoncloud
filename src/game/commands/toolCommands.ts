@@ -11,7 +11,9 @@ import { useFileSystemStore } from '../state/useFileSystemStore';
 import { useInventoryStore } from '../state/useInventoryStore';
 import { getServerFileSystem } from '../filesystem/serverFileSystems';
 import { emitServerConnected, emitServerDisconnected } from '../events/eventBus';
-import { getToolDuration } from '../time/toolDurations';
+import { toolRegistry } from '../tools/ToolModule';
+import { useGameSettingsStore } from '../state/useGameSettingsStore';
+import { applyDurationMultiplier } from '../settings/difficultyConfig';
 import { actionQueue } from '../time/actionQueue';
 
 /**
@@ -284,7 +286,10 @@ export const connectCommand: Command = {
     }
     
     // Enqueue the connection action
-    const duration = getToolDuration('connect');
+    // Connection duration: 3 seconds base, no tool module needed for this
+    const baseDuration = 3;
+    const difficulty = useGameSettingsStore.getState().difficulty;
+    const duration = applyDurationMultiplier(baseDuration, difficulty);
     
     return new Promise((resolve) => {
       actionQueue.enqueue({

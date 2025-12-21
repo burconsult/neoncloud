@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Challenge, generateChallenge, verifyChallengeAnswer } from '../challenges/challengeGenerator';
+// Ensure challenge generators are loaded
+import '../challenges/challengeLoader';
 
 interface ChallengeState {
   currentChallenge: Challenge | null;

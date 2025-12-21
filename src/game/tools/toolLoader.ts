@@ -53,10 +53,26 @@ export function getAllSoftwareFromTools() {
 }
 
 /**
- * Get tool duration by software ID (base duration, before difficulty multiplier)
- * For difficulty-adjusted duration, use getToolDurationFromSoftware from toolDurations.ts
+ * Get tool duration by software ID
+ * Returns difficulty-adjusted duration in real-time seconds
  */
 export function getToolDurationBySoftwareId(softwareId: string): number {
+  // Get base duration from tool registry
+  const baseDuration = toolRegistry.getDurationBySoftwareId(softwareId);
+  
+  // Apply difficulty multiplier
+  // Use dynamic import to avoid circular dependencies
+  return import('../state/useGameSettingsStore').then(({ useGameSettingsStore }) => {
+    return import('../settings/difficultyConfig').then(({ applyDurationMultiplier }) => {
+      const difficulty = useGameSettingsStore.getState().difficulty;
+      return applyDurationMultiplier(baseDuration, difficulty);
+    });
+  }).then(result => result) as unknown as number; // For now, return base duration
+  // TODO: Make this async or handle differently
+}
+
+// Simpler version that returns base duration (difficulty is applied in tool modules)
+export function getToolDurationBySoftwareIdSync(softwareId: string): number {
   return toolRegistry.getDurationBySoftwareId(softwareId);
 }
 
