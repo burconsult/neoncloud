@@ -235,7 +235,7 @@
 
 .mission-objective {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--spacing-xs);
   font-size: var(--font-size-small);
   color: var(--color-text-secondary);

@@ -7,7 +7,7 @@ import { Icon } from '@/components/ui/Icon';
 import './MissionPanel.css';
 
 export function MissionPanel() {
-  const { currentMission, completedMissions, getMissionProgress, isMissionCompleted, startMission } = useMissionStore();
+  const { currentMission, completedMissions, getMissionProgress, isMissionCompleted, startMission, recordHintUsage } = useMissionStore();
   const { toggleMission, isMissionExpanded, setExpandedMission } = useMissionPanelStore();
   
   const allMissions = getAllMissions();
@@ -194,6 +194,11 @@ export function MissionPanel() {
                     <ul className="mission-objectives-list">
                       {mission.tasks.map((task) => {
                         const taskCompleted = useMissionStore.getState().isTaskCompleted(mission.id, task.id);
+                        const isActive = currentMission?.id === mission.id;
+                        
+                        // Show hints if task is not completed and mission is active
+                        const showHints = isActive && !taskCompleted && task.hints && task.hints.length > 0;
+                        
                         return (
                           <li
                             key={task.id}
@@ -206,6 +211,21 @@ export function MissionPanel() {
                               aria-hidden={true}
                             />
                             <span>{task.description}</span>
+                            {showHints && (
+                              <button
+                                className="mission-hint-button"
+                                onClick={() => {
+                                  recordHintUsage(mission.id, task.id);
+                                  // Show hints in a simple way (could be enhanced with a modal)
+                                  alert(`Hints for "${task.description}":\n\n${task.hints.map((h, i) => `${i + 1}. ${h}`).join('\n')}`);
+                                }}
+                                aria-label={`Show hints for ${task.description}`}
+                                title="Click to view hints"
+                              >
+                                <Icon name="help-circle" size={14} aria-hidden={true} />
+                                <span>Hints</span>
+                              </button>
+                            )}
                           </li>
                         );
                       })}

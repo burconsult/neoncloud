@@ -16,17 +16,21 @@ interface MissionState {
   completedMissions: string[];
   taskProgress: Record<string, Record<string, boolean>>; // missionId -> taskId -> completed
   missionStartTime: number | null; // Real-time timestamp when mission timer started (null = not started yet)
+  hintUsage: Record<string, Set<string>>; // missionId -> Set of taskIds where hints were used
   
   // Actions
   setCurrentMission: (mission: Mission | null) => void;
   startMission: (missionId: string) => Promise<boolean>;
   startMissionTimer: () => void; // Start timer on first command
   completeTask: (missionId: string, taskId: string) => void;
+  recordHintUsage: (missionId: string, taskId: string) => void; // Track when a hint is viewed
   completeMission: (missionId: string) => Promise<void>;
   isTaskCompleted: (missionId: string, taskId: string) => boolean;
   isMissionCompleted: (missionId: string) => boolean;
   getMissionProgress: (missionId: string) => number; // Returns 0-100
   getMissionElapsedTime: () => number; // Returns elapsed time in real-time seconds
+  hasUsedHints: (missionId: string) => boolean; // Check if any hints were used in a mission
+  hasPerfectCompletion: (missionId: string) => boolean; // Check if all tasks completed
 }
 
 interface MissionStatePersisted {
@@ -34,6 +38,7 @@ interface MissionStatePersisted {
   completedMissions: string[];
   taskProgress: Record<string, Record<string, boolean>>;
   missionStartTime: number | null;
+  hintUsage: Record<string, string[]>; // missionId -> array of taskIds where hints were used
 }
 
 export const useMissionStore = create<MissionState>()(
@@ -43,6 +48,7 @@ export const useMissionStore = create<MissionState>()(
       completedMissions: [],
       taskProgress: {},
       missionStartTime: null,
+      hintUsage: {},
 
   setCurrentMission: (mission: Mission | null) => {
     set({ currentMission: mission });
@@ -176,9 +182,9 @@ export const useMissionStore = create<MissionState>()(
         
         // Calculate bonuses
         const bonuses = {
-          perfectCompletion: true, // TODO: Check if all tasks completed perfectly
+          perfectCompletion: get().hasPerfectCompletion(missionId),
           speedBonus: speedBonus, // Now calculated based on elapsed time
-          noHints: true, // TODO: Track hint usage
+          noHints: !get().hasUsedHints(missionId), // Check if no hints were used
         };
         
         const totalReward = calculateMissionReward(missionId, bonuses);
@@ -242,6 +248,34 @@ export const useMissionStore = create<MissionState>()(
     return get().completedMissions.includes(missionId);
   },
 
+  recordHintUsage: (missionId: string, taskId: string) => {
+    const state = get();
+    const hintUsage = { ...state.hintUsage };
+    if (!hintUsage[missionId]) {
+      hintUsage[missionId] = new Set<string>();
+    } else {
+      hintUsage[missionId] = new Set(hintUsage[missionId]);
+    }
+    hintUsage[missionId].add(taskId);
+    set({ hintUsage });
+  },
+
+  hasUsedHints: (missionId: string) => {
+    const hintUsage = get().hintUsage[missionId];
+    return hintUsage ? hintUsage.size > 0 : false;
+  },
+
+  hasPerfectCompletion: (missionId: string) => {
+    const mission = getMissionById(missionId);
+    if (!mission) return false;
+    
+    const taskProgress = get().taskProgress[missionId];
+    if (!taskProgress) return false;
+    
+    // Check if all tasks are completed
+    return mission.tasks.every(task => taskProgress[task.id] === true);
+  },
+
   getMissionProgress: (missionId: string) => {
     const mission = getMissionById(missionId);
     if (!mission) {
@@ -268,6 +302,12 @@ export const useMissionStore = create<MissionState>()(
         completedMissions: state.completedMissions,
         taskProgress: state.taskProgress,
         missionStartTime: state.missionStartTime,
+        hintUsage: Object.fromEntries(
+          Object.entries(state.hintUsage).map(([missionId, taskIds]) => [
+            missionId,
+            Array.from(taskIds),
+          ])
+        ),
       }),
       // On rehydrate, restore the full Mission object from ID
       onRehydrateStorage: () => (state, error) => {
