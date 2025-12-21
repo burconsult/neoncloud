@@ -257,6 +257,31 @@
   color: var(--color-accent-secondary);
 }
 
+.mission-hint-button {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid #0f0;
+  color: #0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.mission-hint-button:hover {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #0ff;
+  color: #0ff;
+}
+
+.mission-hint-button:active {
+  background: rgba(0, 255, 0, 0.2);
+}
+
 .mission-learning-objectives {
   margin-bottom: var(--spacing-md);
 }
