@@ -7,6 +7,9 @@ import { useCurrencyStore } from './useCurrencyStore';
 import { initializeMission, finalizeMission } from '../missions/missionLoader';
 import { useGameTimeStore } from '../time/useGameTimeStore';
 import { qualifiesForSpeedBonus } from '../time/missionTimer';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('MissionStore');
 
 interface MissionState {
   currentMission: Mission | null;
