@@ -1,0 +1,162 @@
+.terminal-input-container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-accent-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  padding: 0;
+  margin-left: var(--spacing-sm);
+  width: 100%;
+}
+
+.terminal-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.terminal-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.cursor {
+  color: var(--color-accent-primary);
+  animation: blink 1s infinite;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.command-prompt {
+  user-select: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.prompt-icon {
+  color: var(--color-accent-primary);
+  opacity: 0.8;
+}
+
+.prompt-user {
+  color: var(--color-accent-primary);
+  font-weight: bold;
+}
+
+.prompt-user--root {
+  color: var(--color-accent-error);
+  text-shadow: 0 0 5px var(--color-accent-error);
+}
+
+.prompt-separator {
+  color: var(--color-text-secondary);
+  margin: 0 var(--spacing-xs);
+}
+
+.prompt-host {
+  color: var(--color-accent-secondary);
+  font-weight: bold;
+}
+
+.prompt-vpn-indicator {
+  margin-left: var(--spacing-xs);
+  font-size: 0.85em;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.prompt-vpn--basic {
+  color: #00c8ff; /* Cyan for basic VPN */
+}
+
+.prompt-host.prompt-vpn--basic {
+  color: #00c8ff;
+}
+
+.prompt-vpn-indicator.prompt-vpn--basic {
+  color: #00c8ff;
+  background-color: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.3);
+}
+
+.prompt-vpn--premium {
+  color: #ffd700; /* Gold for premium VPN */
+}
+
+.prompt-host.prompt-vpn--premium {
+  color: #ffd700;
+}
+
+.prompt-vpn-indicator.prompt-vpn--premium {
+  color: #ffd700;
+  background-color: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.prompt-path {
+  color: var(--color-text-secondary);
+  margin-left: var(--spacing-xs);
+}
+
+.autocomplete-suggestions {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-accent-primary);
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--spacing-xs);
+}
+
+.autocomplete-item {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.autocomplete-item:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-accent-primary);
+}
+
+.autocomplete-item::before {
+  content: '  ';
+  margin-right: var(--spacing-xs);
+}
+

@@ -1,0 +1,78 @@
+.currency-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.player-rank {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--color-accent-secondary);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-accent-secondary);
+  border-radius: 4px;
+  background-color: rgba(0, 200, 255, 0.1);
+}
+
+.rank-icon {
+  flex-shrink: 0;
+}
+
+.rank-text {
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.05em;
+}
+
+.currency-display {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-accent-primary);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+  transition: all 0.2s;
+}
+
+.currency-display:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+  border-color: var(--color-accent-secondary);
+}
+
+.currency-icon {
+  color: var(--color-accent-primary);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+  50% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+}
+
+.currency-amount {
+  font-weight: bold;
+  color: var(--color-accent-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.currency-symbol {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  font-weight: normal;
+}
+

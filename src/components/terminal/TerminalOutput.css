@@ -1,0 +1,205 @@
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: var(--spacing-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent-primary) var(--color-bg-secondary);
+  min-height: 0; /* Important for flex children */
+  max-height: 100%;
+  word-break: break-word;
+}
+
+.terminal-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background: var(--color-accent-primary);
+  border-radius: 4px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-secondary);
+}
+
+.output-line {
+  margin-bottom: var(--spacing-xs);
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  overflow-wrap: break-word;
+  width: 100%;
+  clear: both;
+}
+
+.output-line > span,
+.output-line > div {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.output-line > span:first-child {
+  flex-shrink: 0;
+}
+
+.output-line--empty {
+  min-height: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.output-line--help-instruction {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+}
+
+.output-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.output-icon--success {
+  color: var(--color-accent-primary);
+}
+
+.output-icon--error {
+  color: var(--color-accent-error);
+}
+
+.output-line--command {
+  color: var(--color-accent-primary);
+}
+
+.output-line--output {
+  color: var(--color-text-primary);
+}
+
+.output-line--error {
+  color: var(--color-accent-error);
+}
+
+.welcome-message {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.welcome-title {
+  font-size: 2rem;
+  color: var(--color-accent-primary);
+  margin-bottom: var(--spacing-md);
+  text-shadow: 0 0 10px var(--color-accent-primary);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.welcome-icon {
+  color: var(--color-accent-primary);
+  filter: drop-shadow(0 0 5px var(--color-accent-primary));
+}
+
+.welcome-icon-small {
+  color: var(--color-accent-secondary);
+  margin-right: var(--spacing-xs);
+  vertical-align: middle;
+}
+
+.welcome-text {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-small);
+}
+
+.command-prompt {
+  margin-right: var(--spacing-sm);
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.prompt-icon {
+  color: var(--color-accent-primary);
+  opacity: 0.8;
+}
+
+.prompt-user {
+  color: var(--color-accent-primary);
+  font-weight: bold;
+}
+
+.prompt-user--root {
+  color: var(--color-accent-error);
+  text-shadow: 0 0 5px var(--color-accent-error);
+}
+
+.prompt-separator {
+  color: var(--color-text-secondary);
+  margin: 0 var(--spacing-xs);
+}
+
+.prompt-host {
+  color: var(--color-accent-secondary);
+  font-weight: bold;
+}
+
+.prompt-vpn-indicator {
+  margin-left: var(--spacing-xs);
+  font-size: 0.85em;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.prompt-vpn--basic {
+  color: #00c8ff; /* Cyan for basic VPN */
+}
+
+.prompt-host.prompt-vpn--basic {
+  color: #00c8ff;
+}
+
+.prompt-vpn-indicator.prompt-vpn--basic {
+  color: #00c8ff;
+  background-color: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.3);
+}
+
+.prompt-vpn--premium {
+  color: #ffd700; /* Gold for premium VPN */
+}
+
+.prompt-host.prompt-vpn--premium {
+  color: #ffd700;
+}
+
+.prompt-vpn-indicator.prompt-vpn--premium {
+  color: #ffd700;
+  background-color: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.prompt-path {
+  color: var(--color-text-secondary);
+  margin-left: var(--spacing-xs);
+}
+

@@ -1,0 +1,3 @@
+# This file ensures the assets directory is tracked by git
+# Even when empty, the directory structure will be preserved
+

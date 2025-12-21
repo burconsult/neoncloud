@@ -1,0 +1,39 @@
+/* Diagram component styles */
+
+.diagram {
+  margin: var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.diagram-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--color-accent-primary);
+  border-radius: 4px;
+  background-color: var(--color-bg-primary);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+.diagram-caption {
+  margin-top: var(--spacing-md);
+  color: var(--color-accent-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: bold;
+}
+
+.diagram-description {
+  margin-top: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  line-height: 1.6;
+}
+
+/* Responsive diagrams */
+@media (max-width: 768px) {
+  .diagram-image {
+    width: 100%;
+  }
+}
+

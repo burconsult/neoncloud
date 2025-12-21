@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1766252640243,
+  "auth": {
+    "isAuthenticated": false,
+    "username": "guest"
+  },
+  "currency": {
+    "balance": 10,
+    "totalEarned": 10,
+    "totalSpent": 0,
+    "transactions": [
+      {
+        "id": "tx_1766250592066_oqift164h",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766250592066,
+        "category": "task"
+      }
+    ]
+  },
+  "inventory": {
+    "ownedSoftware": [],
+    "storageCapacity": 100,
+    "baseStorageCapacity": 100
+  },
+  "missions": {
+    "currentMissionId": "tutorial-01",
+    "completedMissions": [],
+    "taskProgress": {
+      "tutorial-01": {
+        "task-1": false,
+        "task-2": false,
+        "task-3": false
+      }
+    }
+  },
+  "challenge": {
+    "isRoot": false,
+    "currentChallenge": null,
+    "attempts": 0,
+    "rootPassword": null
+  },
+  "educational": {
+    "dismissedPopups": [],
+    "shownPopups": []
+  },
+  "fileSystem": {
+    "currentDirectory": "/home/neoncloud-user"
+  },
+  "missionPanel": {
+    "expandedMissions": [
+      "tutorial-01"
+    ],
+    "expandedMissionId": "tutorial-01"
+  }
+}

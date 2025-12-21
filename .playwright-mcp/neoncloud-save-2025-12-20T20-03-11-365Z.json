@@ -1,0 +1,294 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1766260991361,
+  "auth": {
+    "isAuthenticated": false,
+    "username": "guest"
+  },
+  "currency": {
+    "balance": 1155,
+    "totalEarned": 1155,
+    "totalSpent": 0,
+    "transactions": [
+      {
+        "id": "tx_1766260986854_btglv8hdh",
+        "type": "earn",
+        "amount": 390,
+        "description": "Completed DNS and Domain Resolution",
+        "timestamp": 1766260986854,
+        "category": "mission"
+      },
+      {
+        "id": "tx_1766260986854_o1bfp2wyj",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260986854,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260984410_rc8ljfbnx",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260984410,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260984409_o69ugdwzv",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260984409,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260963321_txa2i741u",
+        "type": "earn",
+        "amount": 293,
+        "description": "Completed Understanding Network Paths",
+        "timestamp": 1766260963321,
+        "category": "mission"
+      },
+      {
+        "id": "tx_1766260963320_phy4e9xa3",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260963320,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260940354_ky6gbv0px",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260940354,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260737454_e62nmx05i",
+        "type": "earn",
+        "amount": 195,
+        "description": "Completed Network Connectivity Basics",
+        "timestamp": 1766260737454,
+        "category": "mission"
+      },
+      {
+        "id": "tx_1766260737454_zihh4lir2",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260737454,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260732440_yfye4h5rr",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260732440,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260720098_hqbp3hx1t",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260720098,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260695231_lp8qkqtas",
+        "type": "earn",
+        "amount": 98,
+        "description": "Completed Terminal Navigation Basics",
+        "timestamp": 1766260695231,
+        "category": "mission"
+      },
+      {
+        "id": "tx_1766260695231_epccobe5t",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260695231,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260690866_nj8gr0ab1",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260690866,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260683422_pllz9fk0r",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260683422,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260664039_5isfjdi5k",
+        "type": "earn",
+        "amount": 49,
+        "description": "Completed Welcome to NeonCloud",
+        "timestamp": 1766260664039,
+        "category": "mission"
+      },
+      {
+        "id": "tx_1766260664039_6bu9npt8w",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260664039,
+        "category": "task"
+      },
+      {
+        "id": "tx_1766260654741_jlx3b5l8x",
+        "type": "earn",
+        "amount": 10,
+        "description": "Completed a task",
+        "timestamp": 1766260654741,
+        "category": "task"
+      }
+    ]
+  },
+  "inventory": {
+    "ownedSoftware": [],
+    "storageCapacity": 100,
+    "baseStorageCapacity": 100
+  },
+  "missions": {
+    "currentMissionId": "n00b-01",
+    "completedMissions": [
+      "welcome-00",
+      "tutorial-01",
+      "network-01",
+      "network-02",
+      "network-03"
+    ],
+    "taskProgress": {
+      "welcome-00": {
+        "welcome-task-1": true,
+        "welcome-task-2": true
+      },
+      "tutorial-01": {
+        "task-1": true,
+        "task-2": true,
+        "task-3": true
+      },
+      "network-01": {
+        "task-1": true,
+        "task-2": true,
+        "task-3": true
+      },
+      "network-02": {
+        "task-1": true,
+        "task-2": true
+      },
+      "network-03": {
+        "task-1": true,
+        "task-2": true,
+        "task-3": true
+      },
+      "n00b-01": {
+        "task-1": false,
+        "task-2": false,
+        "task-3": false,
+        "task-4": false,
+        "task-5": false,
+        "task-6": false,
+        "task-7": false,
+        "task-8": false
+      }
+    }
+  },
+  "challenge": {
+    "isRoot": false,
+    "currentChallenge": null,
+    "attempts": 0,
+    "rootPassword": null
+  },
+  "educational": {
+    "dismissedPopups": [],
+    "shownPopups": [
+      "command-locked-ping",
+      "command-ping-first-use",
+      "command-tracert-first-use",
+      "command-traceroute-first-use",
+      "command-nslookup-first-use"
+    ]
+  },
+  "fileSystem": {
+    "currentDirectory": "/home/neoncloud-user/Documents",
+    "activeServerId": null
+  },
+  "missionPanel": {
+    "expandedMissions": [
+      "n00b-01"
+    ],
+    "expandedMissionId": "n00b-01"
+  },
+  "connections": {
+    "vpnConnected": false,
+    "vpnType": null,
+    "remoteServerConnected": null,
+    "serverCredentials": {}
+  },
+  "email": {
+    "emails": [
+      {
+        "id": "email-first-hack-001",
+        "from": "contracts@neoncloud-ops.org",
+        "to": "agent@neoncloud.local",
+        "subject": "Contract Assignment: Server-01 Penetration Test",
+        "body": "Agent,\n\nWe have a new contract assignment for you. A client has requested a penetration test on one of their internal servers. This is your first real operational mission.\n\n**Target Information:**\n- Server ID: server-01\n- IP Address: 192.168.1.100\n- Purpose: Internal file server\n- Security Level: Basic\n\n**Mission Objectives:**\n1. Acquire necessary tools (VPN, Password Cracker) from the store\n2. Connect to VPN for anonymity\n3. Extract server credentials from the encrypted file attached to this email\n4. Connect to server-01 using the extracted credentials\n5. Access the target file located at /home/data/secret.txt\n6. Disconnect and report back\n\n**Important Notes:**\n- Use VPN to protect your identity during this operation\n- The attached file contains encrypted credentials - you'll need your password cracker tool\n- Server access requires both username and password\n- Always disconnect when your mission is complete\n\nThe encrypted credentials file is attached. Extract the password, then connect using:\n  Username: admin\n  Password: [extract from encrypted file]\n\nGood luck, Agent. This is your chance to prove your capabilities.\n\nNC-SCOG Operations\ncontracts@neoncloud-ops.org",
+        "timestamp": 1766260642772,
+        "read": false,
+        "attachments": [
+          {
+            "filename": "server-01-credentials.enc",
+            "encrypted": true,
+            "encryptedContent": "V7#kM9$pL2@qW4%rT6&yU8!iO1*zA3(eR5)fH7+gJ9-hK2_iN4=lO6{mP8}nQ1|sB3~tD5",
+            "decryptedContent": "Server-01 Credentials\n\nUsername: admin\nPassword: neonpass123\n\nUse these credentials to connect to server-01 after establishing VPN connection.",
+            "password": "neonpass123"
+          }
+        ],
+        "missionId": "n00b-01"
+      },
+      {
+        "id": "email-welcome-001",
+        "from": "recruitment@neoncloud-ops.org",
+        "to": "agent@neoncloud.local",
+        "subject": "Welcome to NeonCloud Special Cyberoperations Group",
+        "body": "Dear New Agent,\n\nWelcome to NeonCloud Special Cyberoperations Group (NC-SCOG). We're excited to have you join our elite team of cybersecurity specialists.\n\nYou have been selected based on your exceptional potential and dedication to understanding network security. As a trainee agent, you will undertake a series of missions designed to hone your skills and prepare you for real-world operations.\n\n**Your Mission:**\nYour first task is to familiarize yourself with our systems and complete your basic training. Check your Documents folder for important files, and explore the terminal to get comfortable with our operations environment.\n\n**What to Expect:**\n- Training missions to build foundational skills\n- Real-world scenarios to test your knowledge\n- Access to tools and software as you progress\n- Opportunities to earn NeonCoins (NC) for completed missions\n\n**System Access:**\nYou now have access to:\n- Terminal Interface (this system)\n- Email System (type 'mail' to view emails)\n- Software Store (type 'store' to browse)\n- Mission Panel (left sidebar)\n\nWe've attached a welcome package to this email. Check your Documents folder after reading this message.\n\nWelcome aboard, Agent. The digital world needs protectors like you.\n\nBest regards,\nNC-SCOG Recruitment Team\nneoncloud-ops.org",
+        "timestamp": 1766260642772,
+        "read": true,
+        "attachments": [
+          {
+            "filename": "welcome-package.enc",
+            "encrypted": true,
+            "encryptedContent": "Xk9#mP2$vL8@qR4%tN7&wY3!jU6*eI1^zA5(bH9)cD0+dF8-gS2_hJ4=kM7{lK3}nB6|oC1~pQ9",
+            "decryptedContent": "Welcome Package - NC-SCOG\n\nThis file contains no critical information, but you'll learn how to decrypt files in future missions.\n\nKeep practicing your skills!"
+          }
+        ],
+        "missionId": "welcome-00"
+      }
+    ],
+    "currentEmailId": null
+  },
+  "lore": {
+    "entries": [
+      {
+        "id": "lore-neoncloud-org",
+        "title": "NeonCloud Special Cyberoperations Group",
+        "content": "NeonCloud Special Cyberoperations Group (NC-SCOG) is an elite cybersecurity organization that trains and deploys agents to protect digital infrastructure and combat cyber threats.\n\n**Organization Structure:**\n- Headquarters: Classified\n- Operations: Global\n- Focus: Network security, penetration testing, threat analysis\n\n**Agent Ranks:**\n- Trainee (Level 1)\n- Agent (Level 2-3)\n- Specialist (Level 4-5)\n- Elite Agent (Level 6+)\n\nAgents are assigned contracts from various clients requiring penetration testing, security audits, and threat assessment.",
+        "category": "organization",
+        "unlockedAt": 1766258003838
+      }
+    ]
+  }
+}

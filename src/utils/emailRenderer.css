@@ -1,0 +1,97 @@
+.email-content {
+  width: 100%;
+}
+
+.email-header {
+  border-bottom: 1px solid var(--color-bg-tertiary);
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.email-header-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.9em;
+}
+
+.email-header-label {
+  font-weight: bold;
+  color: var(--color-text-secondary);
+  min-width: 60px;
+}
+
+.email-header-value {
+  color: var(--color-text-primary);
+}
+
+.email-header-subject {
+  color: var(--color-accent-primary);
+  font-weight: 600;
+}
+
+.email-body {
+  margin-bottom: var(--spacing-md);
+  line-height: 1.6;
+}
+
+.email-attachments {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-bg-tertiary);
+}
+
+.email-attachments-title {
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+}
+
+.email-attachments-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.email-attachment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.email-attachment-icon {
+  font-size: 1em;
+}
+
+.email-attachment-name {
+  color: var(--color-accent-secondary);
+  flex: 1;
+}
+
+.email-attachment-status {
+  font-size: 0.85em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.email-attachment-status.encrypted {
+  background-color: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+}
+
+.email-attachment-status.decrypted {
+  background-color: rgba(0, 255, 0, 0.2);
+  color: #00ff00;
+}
+
+.email-attachments-note {
+  font-size: 0.85em;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-top: var(--spacing-xs);
+}
+
