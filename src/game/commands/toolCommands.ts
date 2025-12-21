@@ -133,72 +133,7 @@ export const connectCommand: Command = {
       };
     }
     
-    // Check if we have credentials for this server
-    // First check mission-provided credentials (from cracked files), then fall back to host registry
-    let credentials = connectionStore.getServerCredentials(server);
-    
-    // If no mission credentials, check host entity for default credentials
-    if (!credentials && host?.credentials) {
-      // Host has credentials defined, but they may require cracking
-      if (host.credentials.requiresCracking) {
-        // Still need to crack them via mission files
-        credentials = null;
-      } else {
-        // Use host credentials directly (rare case)
-        credentials = {
-          serverId: server,
-          username: host.credentials.username,
-          password: host.credentials.password,
-        };
-        // Store them for future use
-        connectionStore.setServerCredentials(server, host.credentials.username, host.credentials.password);
-      }
-    }
-    
-    if (!credentials) {
-      return {
-        output: [
-          `Cannot connect to ${server} without credentials.`,
-          '',
-          'You need to extract the username and password first.',
-          'Check your email for mission details and encrypted credential files.',
-          'Use the crack command on encrypted files to extract passwords.',
-          '',
-          'Example: crack server-01-credentials.enc',
-        ],
-        success: false,
-        error: 'Missing credentials',
-      };
-    }
-    
-    // Validate username if provided
-    if (requestedUsername && requestedUsername !== credentials.username) {
-      return {
-        output: [
-          `Authentication failed.`,
-          `Username "${requestedUsername}" is not valid for ${server}.`,
-          `Use: ssh ${credentials.username}@${server}`,
-        ],
-        success: false,
-        error: 'Invalid username',
-      };
-    }
-    
-    // Verify password (use stored password from cracked credentials)
-    const password = credentials.password;
-    
-    if (!password) {
-      return {
-        output: [
-          `Password for ${credentials.username}@${server} not found.`,
-          'Make sure you have cracked the encrypted credential file.',
-        ],
-        success: false,
-        error: 'Password not found',
-      };
-    }
-    
-    // Validate host exists in world registry
+    // Validate host exists in world registry FIRST
     const { worldRegistry } = await import('../world/registry/WorldRegistry');
     const { useDiscoveryStore } = await import('../world/discovery/DiscoveryStore');
     const host = worldRegistry.getHost(server);
@@ -263,6 +198,71 @@ export const connectCommand: Command = {
           error: 'Firewall protection',
         };
       }
+    }
+    
+    // Check if we have credentials for this server
+    // First check mission-provided credentials (from cracked files), then fall back to host registry
+    let credentials = connectionStore.getServerCredentials(server);
+    
+    // If no mission credentials, check host entity for default credentials
+    if (!credentials && host.credentials) {
+      // Host has credentials defined, but they may require cracking
+      if (host.credentials.requiresCracking) {
+        // Still need to crack them via mission files
+        credentials = null;
+      } else {
+        // Use host credentials directly (rare case)
+        credentials = {
+          serverId: server,
+          username: host.credentials.username,
+          password: host.credentials.password,
+        };
+        // Store them for future use
+        connectionStore.setServerCredentials(server, host.credentials.username, host.credentials.password);
+      }
+    }
+    
+    if (!credentials) {
+      return {
+        output: [
+          `Cannot connect to ${server} without credentials.`,
+          '',
+          'You need to extract the username and password first.',
+          'Check your email for mission details and encrypted credential files.',
+          'Use the crack command on encrypted files to extract passwords.',
+          '',
+          'Example: crack server-01-credentials.enc',
+        ],
+        success: false,
+        error: 'Missing credentials',
+      };
+    }
+    
+    // Validate username if provided
+    if (requestedUsername && requestedUsername !== credentials.username) {
+      return {
+        output: [
+          `Authentication failed.`,
+          `Username "${requestedUsername}" is not valid for ${server}.`,
+          `Use: ssh ${credentials.username}@${server}`,
+        ],
+        success: false,
+        error: 'Invalid username',
+      };
+    }
+    
+    // Verify password (use stored password from cracked credentials)
+    const password = credentials.password;
+    
+    if (!password) {
+      return {
+        output: [
+          `Password for ${credentials.username}@${server} not found.`,
+          'Make sure you have cracked the encrypted credential file.',
+        ],
+        success: false,
+        error: 'Password not found',
+      };
     }
     
     // Verify server file system exists (fallback to legacy system)
