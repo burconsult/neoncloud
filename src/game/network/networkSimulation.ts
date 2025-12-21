@@ -1,7 +1,11 @@
 /**
  * Network simulation system for educational network commands
  * Simulates network hosts, IPs, and connectivity
+ * Now integrated with world registry for host information
  */
+
+import { worldRegistry } from '../world/registry/WorldRegistry';
+import { useDiscoveryStore } from '../world/discovery/DiscoveryStore';
 
 export interface NetworkHost {
   name: string;
@@ -32,17 +36,24 @@ export interface TracerouteHop {
 }
 
 /**
- * Default network hosts for simulation
+ * Convert world registry Host to NetworkHost format
  */
-export const networkHosts: NetworkHost[] = [
-  {
-    name: 'localhost',
-    ip: '127.0.0.1',
-    domain: 'localhost',
-    isOnline: true,
-    baseLatency: 0,
-    description: 'Local machine',
-  },
+function convertHostToNetworkHost(host: any): NetworkHost {
+  return {
+    name: host.name,
+    ip: host.ipAddress,
+    domain: host.domainName,
+    isOnline: host.isOnline !== undefined ? host.isOnline : true,
+    baseLatency: host.baseLatency !== undefined ? host.baseLatency : 10,
+    description: host.description,
+  };
+}
+
+/**
+ * Legacy network hosts for educational purposes (gateway, dns servers, etc.)
+ * These are kept for backward compatibility with existing missions
+ */
+const legacyNetworkHosts: NetworkHost[] = [
   {
     name: 'gateway',
     ip: '192.168.1.1',
@@ -75,30 +86,40 @@ export const networkHosts: NetworkHost[] = [
     baseLatency: 45,
     description: 'Example web server',
   },
-  {
-    name: 'offline-host',
-    ip: '192.168.1.100',
-    domain: 'offline.local',
-    isOnline: false,
-    baseLatency: 0,
-    description: 'Offline host (for testing)',
-  },
 ];
 
 /**
  * Find a host by name, IP, or domain
+ * First checks world registry, then falls back to legacy hosts
  */
 export function findHost(query: string): NetworkHost | null {
   const lowerQuery = query.toLowerCase().trim();
   
-  return (
-    networkHosts.find(
-      (host) =>
-        host.name.toLowerCase() === lowerQuery ||
-        host.ip === query ||
-        host.domain?.toLowerCase() === lowerQuery
-    ) || null
+  // First, try to find host in world registry by name, IP, or domain
+  const worldHost = 
+    worldRegistry.getHost(lowerQuery) ||
+    worldRegistry.findHostByIP(query) ||
+    worldRegistry.findHostByDomain(lowerQuery);
+  
+  if (worldHost) {
+    // Discover host if not already discovered
+    const discoveryStore = useDiscoveryStore.getState();
+    if (!discoveryStore.isHostDiscovered(worldHost.id)) {
+      discoveryStore.discoverHost(worldHost.id, 'scan'); // Using 'scan' as default discovery method
+    }
+    
+    return convertHostToNetworkHost(worldHost);
+  }
+  
+  // Fall back to legacy network hosts
+  const legacyHost = legacyNetworkHosts.find(
+    (host) =>
+      host.name.toLowerCase() === lowerQuery ||
+      host.ip === query ||
+      host.domain?.toLowerCase() === lowerQuery
   );
+  
+  return legacyHost || null;
 }
 
 /**

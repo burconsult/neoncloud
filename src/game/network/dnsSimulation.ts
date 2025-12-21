@@ -1,6 +1,10 @@
 /**
  * DNS simulation system for educational DNS commands
+ * Now integrated with world registry for host/organization DNS records
  */
+
+import { worldRegistry } from '../world/registry/WorldRegistry';
+import { useDiscoveryStore } from '../world/discovery/DiscoveryStore';
 
 export interface DNSRecord {
   type: 'A' | 'AAAA' | 'MX' | 'TXT' | 'CNAME' | 'NS';
@@ -16,9 +20,103 @@ export interface DNSZone {
 }
 
 /**
- * Simulated DNS zones
+ * Convert host DNS records to DNSRecord array
  */
-const dnsZones: DNSZone[] = [
+function convertHostDNSRecordsToDNSRecords(
+  domain: string,
+  hostRecords: {
+    A?: string[];
+    AAAA?: string[];
+    CNAME?: string[];
+    MX?: { priority: number; value: string }[];
+    TXT?: string[];
+    NS?: string[];
+  }
+): DNSRecord[] {
+  const records: DNSRecord[] = [];
+  const defaultTTL = 3600; // Default TTL for game hosts
+
+  // A records
+  if (hostRecords.A) {
+    hostRecords.A.forEach(ip => {
+      records.push({
+        type: 'A',
+        name: domain,
+        value: ip,
+        ttl: defaultTTL,
+      });
+    });
+  }
+
+  // AAAA records
+  if (hostRecords.AAAA) {
+    hostRecords.AAAA.forEach(ip => {
+      records.push({
+        type: 'AAAA',
+        name: domain,
+        value: ip,
+        ttl: defaultTTL,
+      });
+    });
+  }
+
+  // CNAME records
+  if (hostRecords.CNAME) {
+    hostRecords.CNAME.forEach(alias => {
+      records.push({
+        type: 'CNAME',
+        name: domain,
+        value: alias,
+        ttl: defaultTTL,
+      });
+    });
+  }
+
+  // MX records
+  if (hostRecords.MX) {
+    hostRecords.MX.forEach(mx => {
+      records.push({
+        type: 'MX',
+        name: domain,
+        value: mx.value,
+        ttl: defaultTTL,
+        priority: mx.priority,
+      });
+    });
+  }
+
+  // TXT records
+  if (hostRecords.TXT) {
+    hostRecords.TXT.forEach(txt => {
+      records.push({
+        type: 'TXT',
+        name: domain,
+        value: txt,
+        ttl: defaultTTL,
+      });
+    });
+  }
+
+  // NS records
+  if (hostRecords.NS) {
+    hostRecords.NS.forEach(ns => {
+      records.push({
+        type: 'NS',
+        name: domain,
+        value: ns,
+        ttl: 86400, // NS records typically have longer TTL
+      });
+    });
+  }
+
+  return records;
+}
+
+/**
+ * Legacy DNS zones for educational domains (example.com, dns.google, etc.)
+ * These are kept for backward compatibility with existing missions
+ */
+const legacyDNSZones: DNSZone[] = [
   {
     domain: 'example.com',
     records: [
@@ -56,6 +154,7 @@ const dnsZones: DNSZone[] = [
 
 /**
  * Lookup DNS records for a domain
+ * First checks world registry for hosts/organizations, then falls back to legacy zones
  */
 export function lookupDNS(
   domain: string,
@@ -64,20 +163,61 @@ export function lookupDNS(
   const normalizedDomain = domain.toLowerCase().trim();
   const normalizedType = recordType?.toUpperCase().trim();
 
-  const zone = dnsZones.find((z) => z.domain === normalizedDomain);
+  // First, try to find a host by domain name
+  const host = worldRegistry.findHostByDomain(normalizedDomain);
+  
+  if (host && host.dnsRecords) {
+    // Convert host DNS records to DNSRecord format
+    const records = convertHostDNSRecordsToDNSRecords(
+      host.domainName || normalizedDomain,
+      host.dnsRecords
+    );
 
-  if (!zone) {
-    return { records: [], found: false };
+    // Filter by record type if specified
+    let filteredRecords = records;
+    if (normalizedType && ['A', 'AAAA', 'MX', 'TXT', 'CNAME', 'NS'].includes(normalizedType)) {
+      filteredRecords = records.filter((r) => r.type === normalizedType);
+    }
+
+    // Discover host through DNS lookup
+    const discoveryStore = useDiscoveryStore.getState();
+    if (!discoveryStore.isHostDiscovered(host.id)) {
+      discoveryStore.discoverHost(host.id, 'dns-lookup');
+    }
+    
+    // Record DNS lookup
+    discoveryStore.recordDNSLookup(normalizedDomain, filteredRecords);
+
+    return { records: filteredRecords, found: true };
   }
 
-  let records = zone.records;
-
-  // Filter by record type if specified
-  if (normalizedType && ['A', 'AAAA', 'MX', 'TXT', 'CNAME', 'NS'].includes(normalizedType)) {
-    records = records.filter((r) => r.type === normalizedType);
+  // Try to find organization by domain
+  const org = worldRegistry.findOrganizationByDomain(normalizedDomain);
+  if (org && (org.publicDomain || org.domain || org.internalDomain)) {
+    // For organizations, we could create DNS records based on their hosts
+    // For now, we'll fall through to legacy zones or return empty
+    // This can be enhanced later to show organization-level DNS info
   }
 
-  return { records, found: true };
+  // Fall back to legacy DNS zones (example.com, dns.google, etc.)
+  const zone = legacyDNSZones.find((z) => z.domain === normalizedDomain);
+  if (zone) {
+    let records = zone.records;
+
+    // Filter by record type if specified
+    if (normalizedType && ['A', 'AAAA', 'MX', 'TXT', 'CNAME', 'NS'].includes(normalizedType)) {
+      records = records.filter((r) => r.type === normalizedType);
+    }
+
+    // Record DNS lookup for legacy zones too
+    const discoveryStore = useDiscoveryStore.getState();
+    discoveryStore.recordDNSLookup(normalizedDomain, records);
+
+    return { records, found: true };
+  }
+
+  // Domain not found
+  return { records: [], found: false };
 }
 
 /**

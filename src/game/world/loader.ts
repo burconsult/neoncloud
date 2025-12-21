@@ -8,7 +8,7 @@ import { worldRegistry } from './registry/WorldRegistry';
 // Import all entities
 import { neoncloudOrg, megacorpOrg } from './entities/organizations';
 import { agentSmithContact } from './entities/contacts';
-import { server01Host, server02Host } from './entities/hosts';
+import { localhostHost, server01Host, server02Host } from './entities/hosts';
 
 /**
  * Load all world entities into the registry
@@ -27,6 +27,7 @@ export function loadWorldEntities(): void {
   worldRegistry.registerContact(agentSmithContact);
 
   // Register hosts
+  worldRegistry.registerHost(localhostHost);
   worldRegistry.registerHost(server01Host);
   worldRegistry.registerHost(server02Host);
 

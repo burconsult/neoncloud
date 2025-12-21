@@ -48,7 +48,7 @@ export function loadMissionModules(): void {
 
 /**
  * Initialize a mission when it starts
- * Handles emails, lore, file system, etc.
+ * Handles emails, lore, file system, world entity discovery, etc.
  */
 export async function initializeMission(missionId: string): Promise<void> {
   const module = missionRegistry.get(missionId);
@@ -56,6 +56,35 @@ export async function initializeMission(missionId: string): Promise<void> {
     console.warn(`Mission module not found: ${missionId}`);
     return;
   }
+
+  // Discover world entities associated with this mission
+  const { worldGraph } = await import('../world/graph/WorldGraph');
+  const { useDiscoveryStore } = await import('../world/discovery/DiscoveryStore');
+  const discoveryStore = useDiscoveryStore.getState();
+  
+  // Discover organizations involved in this mission
+  const missionOrgs = worldGraph.getOrganizationsByMission(missionId);
+  missionOrgs.forEach(org => {
+    if (!discoveryStore.isOrganizationDiscovered(org.id)) {
+      discoveryStore.discoverOrganization(org.id, 'mission');
+    }
+  });
+  
+  // Discover hosts involved in this mission
+  const missionHosts = worldGraph.getHostsByMission(missionId);
+  missionHosts.forEach(host => {
+    if (!discoveryStore.isHostDiscovered(host.id)) {
+      discoveryStore.discoverHost(host.id, 'mission');
+    }
+  });
+  
+  // Discover contacts involved in this mission
+  const missionContacts = worldGraph.getContactsByMission(missionId);
+  missionContacts.forEach(contact => {
+    if (!discoveryStore.discoveredContacts.has(contact.id)) {
+      discoveryStore.discoverContact(contact.id, 'mission');
+    }
+  });
 
   // Send start emails (duplicate prevention handled by emailStore.addEmail)
   if (module.startEmails && module.startEmails.length > 0) {
