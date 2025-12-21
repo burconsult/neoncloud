@@ -75,20 +75,24 @@ export function createFirstHackEmail(): Email {
 We have a new contract assignment for you. A client has requested a penetration test on one of their internal servers. This is your first real operational mission.
 
 **Target Information:**
-- Server ID: server-01
-- IP Address: 192.168.1.100
+- Organization: Megacorp Industries
+- Network: Internal network (192.168.1.0/24)
+- Primary Target: server-01 (discover via network scan)
 - Purpose: Internal file server
 - Security Level: Basic
 
 **Mission Objectives:**
-1. Acquire necessary tools (VPN, Password Cracker) from the store
-2. Connect to VPN for anonymity
-3. Extract server credentials from the encrypted file attached to this email
-4. Connect to server-01 using the extracted credentials
-5. Access the target file located at /home/data/secret.txt
-6. Disconnect and report back
+1. Scan the Megacorp network (192.168.1.0/24) to discover active hosts
+2. Acquire necessary tools (VPN, Password Cracker) from the store
+3. Connect to VPN for anonymity
+4. Extract server credentials from the encrypted file attached to this email
+5. Connect to server-01 using the extracted credentials
+6. Access the target file located at /home/data/secret.txt
+7. Disconnect and report back
 
 **Important Notes:**
+- Use your Network Scanner to scan the target network range (192.168.1.0/24)
+- This will reveal active hosts including server-01
 - Use VPN to protect your identity during this operation
 - The attached file contains encrypted credentials - you'll need your password cracker tool
 - Server access requires both username and password

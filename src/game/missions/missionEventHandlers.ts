@@ -134,8 +134,8 @@ export function registerMissionEventHandlers(): void {
       );
       
       if (isConnectOrSSHSolution) {
-        // For n00b-01 task-6: connect to server-01
-        if (currentMission.id === 'n00b-01' && task.id === 'task-6') {
+        // For n00b-01 task-7: connect to server-01
+        if (currentMission.id === 'n00b-01' && task.id === 'task-7') {
           if (event.serverId === 'server-01') {
             missionStore.completeTask(currentMission.id, task.id);
           }
@@ -310,7 +310,7 @@ function matchesCommandSolution(
   // MUST be checked BEFORE generic command matching to prevent false positives
   // These tasks require reading specific files on specific servers
   if (solution === 'cat' && command === 'cat') {
-    // For n00b-01 task-7: must read secret.txt on server-01
+      // For n00b-01 task-8: must read secret.txt on server-01
     if (missionId === 'n00b-01' && taskId === 'task-7') {
       // Check that user is on server-01 and reading secret.txt
       const fileSystemStore = useFileSystemStore.getState();
