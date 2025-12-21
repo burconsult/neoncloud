@@ -95,11 +95,11 @@ export const dataExtractionMissionModule: MissionModule = {
         id: 'task-6',
         description: 'Extract customer-data.txt',
         type: 'command',
-        objective: 'Read customer-data.txt from /home/database/customers/',
-        hints: [
-          'Use "cd /home/database/customers" to navigate',
-          'Then use "cat customer-data.txt" to read the file',
-          'Or use "cat /home/database/customers/customer-data.txt"',
+            objective: 'Read customer-data.txt from /home/admin/database/customers/',
+            hints: [
+              'You start in /home/admin, navigate to database/customers',
+              'Use "cd database/customers" then "cat customer-data.txt"',
+              'Or use "cat /home/admin/database/customers/customer-data.txt"',
         ],
         solution: 'cat',
         reward: 50,
@@ -108,11 +108,11 @@ export const dataExtractionMissionModule: MissionModule = {
         id: 'task-7',
         description: 'Extract financial-report.txt',
         type: 'command',
-        objective: 'Read financial-report.txt from /home/database/reports/',
-        hints: [
-          'Use "cd /home/database/reports" to navigate',
-          'Then use "cat financial-report.txt" to read the file',
-          'Or use "cat /home/database/reports/financial-report.txt"',
+            objective: 'Read financial-report.txt from /home/admin/database/reports/',
+            hints: [
+              'Navigate to the reports directory under database',
+              'Use "cd database/reports" then "cat financial-report.txt"',
+              'Or use "cat /home/admin/database/reports/financial-report.txt"',
         ],
         solution: 'cat',
         reward: 50,

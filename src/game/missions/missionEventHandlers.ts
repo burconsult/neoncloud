@@ -81,8 +81,8 @@ export function registerMissionEventHandlers(): void {
         if (currentMission.id === 'n00b-01' && task.id === 'task-8') {
           // Check exact filename match and server
           if (activeServerId === 'server-01' && event.filename === 'secret.txt') {
-            // Also verify the path contains /home/data to ensure it's the correct file location
-            if (event.filePath.includes('/home/data') || event.filePath.includes('/data')) {
+            // Verify the path contains /home/admin/data or /data to ensure it's the correct file location
+            if (event.filePath.includes('/home/admin/data') || event.filePath.includes('/data')) {
               missionStore.completeTask(currentMission.id, task.id);
             }
           }
@@ -90,8 +90,8 @@ export function registerMissionEventHandlers(): void {
         // For n00b-02 task-6: reading customer-data.txt on server-02
         if (currentMission.id === 'n00b-02' && task.id === 'task-6') {
           if (activeServerId === 'server-02' && event.filename === 'customer-data.txt') {
-            // Verify path contains /home/database/customers
-            if (event.filePath.includes('/home/database/customers') || event.filePath.includes('/database/customers')) {
+            // Verify path contains /home/admin/database/customers or /database/customers
+            if (event.filePath.includes('/home/admin/database/customers') || event.filePath.includes('/database/customers')) {
               missionStore.completeTask(currentMission.id, task.id);
             }
           }
@@ -99,8 +99,8 @@ export function registerMissionEventHandlers(): void {
         // For n00b-02 task-7: reading financial-report.txt on server-02
         if (currentMission.id === 'n00b-02' && task.id === 'task-7') {
           if (activeServerId === 'server-02' && event.filename === 'financial-report.txt') {
-            // Verify path contains /home/database/reports
-            if (event.filePath.includes('/home/database/reports') || event.filePath.includes('/database/reports')) {
+            // Verify path contains /home/admin/database/reports or /database/reports
+            if (event.filePath.includes('/home/admin/database/reports') || event.filePath.includes('/database/reports')) {
               missionStore.completeTask(currentMission.id, task.id);
             }
           }
