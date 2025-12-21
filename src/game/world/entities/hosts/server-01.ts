@@ -4,6 +4,7 @@
  */
 
 import { Host } from '../../types/Host';
+import { FileSystem } from '@/types';
 
 export const server01Host: Host = {
   id: 'server-01',
@@ -49,6 +50,12 @@ export const server01Host: Host = {
   
   // File System
   fileSystemId: 'server-01',
+  fileSystemFactory: () => {
+    // Import dynamically to avoid circular dependencies
+    // Use a function that will be called at runtime
+    // For now, return null and handle in getServerFileSystem
+    return null as any; // Will be resolved at runtime in getServerFileSystem
+  },
   
   // Network Topology
   networkConnections: [

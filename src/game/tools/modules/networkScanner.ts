@@ -12,6 +12,7 @@ import { useTerminalStore } from '../../state/useTerminalStore';
 import { queueToolAction } from '../../time/actionQueue';
 import { emitToolUsed } from '../../events/eventBus';
 import { worldRegistry } from '../../world/registry/WorldRegistry';
+import { worldGraph } from '../../world/graph/WorldGraph';
 import { useDiscoveryStore } from '../../world/discovery/DiscoveryStore';
 import { useGameTimeStore } from '../../time/useGameTimeStore';
 
@@ -92,6 +93,23 @@ function scanIPRange(ipRange: string): {
   // Record scan
   discoveryStore.recordScan(ipRange, discoveredHostIds);
 
+  // Check if scanned IP range belongs to an organization and discover it
+  const hostsInRange = worldGraph.getHostsByIPRange(ipRange);
+  const orgIds = new Set<string>();
+  
+  hostsInRange.forEach(host => {
+    const org = worldGraph.getOrganizationByHost(host.id);
+    if (org) {
+      orgIds.add(org.id);
+    }
+  });
+  
+  orgIds.forEach(orgId => {
+    if (!discoveryStore.isOrganizationDiscovered(orgId)) {
+      discoveryStore.discoverOrganization(orgId, 'scan');
+    }
+  });
+
   return {
     discoveredHosts: discoveredHostIds,
     scannedIPs: ips,
@@ -101,6 +119,7 @@ function scanIPRange(ipRange: string): {
 
 export const networkScannerToolModule: ToolModule = {
   toolId: 'network-scanner',
+  vendorId: null, // Granted for free by NeonCloud (no purchase needed)
 
   basicSoftware: {
     id: 'network-scanner-basic',

@@ -153,6 +153,54 @@ export class WorldGraph {
       host.discoveryMethods.includes(method as any)
     );
   }
+
+  /**
+   * Get vendors (organizations) that sell a specific tool
+   */
+  getVendorsByTool(toolId: string): Organization[] {
+    return worldRegistry.getAllOrganizations().filter(org =>
+      org.vendorInfo?.toolIds?.includes(toolId)
+    );
+  }
+
+  /**
+   * Get hosts in an IP range (for scanning validation)
+   */
+  getHostsByIPRange(ipRange: string): Host[] {
+    // Simple check: if host IP starts with the base IP range prefix
+    // For full CIDR validation, would need a proper IP range library
+    const baseIP = ipRange.split('/')[0];
+    const prefixParts = baseIP.split('.').slice(0, 3); // Get first 3 octets for /24
+    
+    return worldRegistry.getAllHosts().filter(host => {
+      const hostIPParts = host.ipAddress.split('.');
+      return hostIPParts.slice(0, 3).every((part, i) => part === prefixParts[i]);
+    });
+  }
+
+  /**
+   * Get all undiscovered hosts (for scan results, etc.)
+   */
+  getUndiscoveredHosts(discoveryStore: any): Host[] {
+    return worldRegistry.getAllHosts().filter(host =>
+      !discoveryStore.isHostDiscovered(host.id)
+    );
+  }
+
+  /**
+   * Get organization by domain name
+   */
+  findOrganizationByDomain(domain: string): Organization | null {
+    const normalizedDomain = domain.toLowerCase();
+    
+    return worldRegistry.getAllOrganizations().find(org => {
+      return (
+        org.domain?.toLowerCase() === normalizedDomain ||
+        org.publicDomain?.toLowerCase() === normalizedDomain ||
+        org.internalDomain?.toLowerCase() === normalizedDomain
+      ) || null;
+    }) || null;
+  }
 }
 
 // Singleton instance

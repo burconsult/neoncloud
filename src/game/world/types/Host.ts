@@ -63,6 +63,7 @@ export interface Host {
   
   // File System
   fileSystemId: string; // References file system in serverFileSystems.ts
+  fileSystemFactory?: () => FileSystem; // Optional: factory function to generate file system dynamically
   
   // Network Topology
   networkConnections?: NetworkConnection[];

@@ -14,6 +14,7 @@ import { useTerminalStore } from '../../state/useTerminalStore';
 
 export const vpnToolModule: ToolModule = {
   toolId: 'vpn',
+  vendorId: 'neoncloud', // Available from NeonCloud (player's employer)
 
   basicSoftware: {
     id: 'vpn-basic',

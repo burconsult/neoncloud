@@ -8,6 +8,7 @@
 import { Command, CommandResult } from '@/types';
 import { useConnectionStore } from '../state/useConnectionStore';
 import { useFileSystemStore } from '../state/useFileSystemStore';
+import { useInventoryStore } from '../state/useInventoryStore';
 import { getServerFileSystem } from '../filesystem/serverFileSystems';
 import { emitServerConnected, emitServerDisconnected } from '../events/eventBus';
 import { getToolDuration } from '../time/toolDurations';
@@ -133,7 +134,26 @@ export const connectCommand: Command = {
     }
     
     // Check if we have credentials for this server
+    // First check mission-provided credentials (from cracked files), then fall back to host registry
     let credentials = connectionStore.getServerCredentials(server);
+    
+    // If no mission credentials, check host entity for default credentials
+    if (!credentials && host?.credentials) {
+      // Host has credentials defined, but they may require cracking
+      if (host.credentials.requiresCracking) {
+        // Still need to crack them via mission files
+        credentials = null;
+      } else {
+        // Use host credentials directly (rare case)
+        credentials = {
+          serverId: server,
+          username: host.credentials.username,
+          password: host.credentials.password,
+        };
+        // Store them for future use
+        connectionStore.setServerCredentials(server, host.credentials.username, host.credentials.password);
+      }
+    }
     
     if (!credentials) {
       return {
@@ -178,10 +198,75 @@ export const connectCommand: Command = {
       };
     }
     
-    // Verify server exists and can be connected
-    const fileSystemStore = useFileSystemStore.getState();
+    // Validate host exists in world registry
+    const { worldRegistry } = await import('../world/registry/WorldRegistry');
+    const { useDiscoveryStore } = await import('../world/discovery/DiscoveryStore');
+    const host = worldRegistry.getHost(server);
     
-    // Check if server file system exists
+    if (!host) {
+      return {
+        output: [
+          `Connecting to ${server}...`,
+          '',
+          `Connection failed: Host ${server} not found in network registry.`,
+          '',
+          'Use network scanning to discover hosts before connecting.',
+        ],
+        success: false,
+        error: 'Host not found',
+      };
+    }
+    
+    // Check if host is online
+    if (host.isOnline === false) {
+      return {
+        output: [
+          `Connecting to ${server}...`,
+          '',
+          `Connection failed: Host ${server} is offline or unreachable.`,
+        ],
+        success: false,
+        error: 'Host offline',
+      };
+    }
+    
+    // Check if host has been discovered
+    const discoveryStore = useDiscoveryStore.getState();
+    if (!discoveryStore.isHostDiscovered(server)) {
+      return {
+        output: [
+          `Connecting to ${server}...`,
+          '',
+          `Connection failed: Host ${server} is not in your network registry.`,
+          '',
+          'Use "scan <ip-range>" to discover hosts on the network first.',
+        ],
+        success: false,
+        error: 'Host not discovered',
+      };
+    }
+    
+    // Check security requirements
+    if (host.security.requiresFirewallBypass) {
+      const inventoryStore = useInventoryStore.getState();
+      if (!inventoryStore.ownsSoftware('firewall-bypass')) {
+        return {
+          output: [
+            `Connecting to ${server}...`,
+            '',
+            `Connection failed: Host ${server} is protected by a firewall.`,
+            '',
+            'You need a Firewall Bypass Tool to access this host.',
+            'Purchase it from the software store.',
+          ],
+          success: false,
+          error: 'Firewall protection',
+        };
+      }
+    }
+    
+    // Verify server file system exists (fallback to legacy system)
+    const fileSystemStore = useFileSystemStore.getState();
     const serverFileSystem = getServerFileSystem(server);
     
     if (!serverFileSystem) {
@@ -189,12 +274,12 @@ export const connectCommand: Command = {
         output: [
           `Connecting to ${server}...`,
           '',
-          `Connection failed: Server ${server} not found.`,
+          `Connection failed: Server ${server} file system not configured.`,
           '',
           'Available servers will be provided in mission briefings.',
         ],
         success: false,
-        error: 'Server not found',
+        error: 'Server not configured',
       };
     }
     

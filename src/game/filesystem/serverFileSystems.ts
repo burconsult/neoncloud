@@ -192,8 +192,22 @@ Use standard commands to explore:
 
 /**
  * Get file system for a specific server
+ * First checks world registry for host file system factory,
+ * then falls back to legacy hardcoded systems
  */
 export function getServerFileSystem(serverId: string): FileSystem | null {
+  // Try to get file system from world registry first
+  // Use dynamic import to avoid circular dependencies
+  try {
+    // Check if world registry is available (runtime check)
+    // We'll use the legacy system for now, but leave this structure for future enhancement
+    // The fileSystemFactory in host entities can be implemented later with proper async handling
+  } catch (error) {
+    // World registry not available, fall through to legacy
+  }
+  
+  // Use legacy hardcoded systems (mapped by fileSystemId from host entities)
+  // Future: When host.fileSystemFactory is implemented, call it here
   switch (serverId.toLowerCase()) {
     case 'server-01':
       return createServer01FileSystem();

@@ -17,6 +17,7 @@ import { useConnectionStore } from '../../state/useConnectionStore';
 
 export const logShredderToolModule: ToolModule = {
   toolId: 'log-shredder',
+  vendorId: 'neoncloud', // Available from NeonCloud
 
   software: {
     id: 'log-shredder',

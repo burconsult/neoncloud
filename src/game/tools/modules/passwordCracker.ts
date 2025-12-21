@@ -19,6 +19,7 @@ import { useTerminalStore } from '../../state/useTerminalStore';
 
 export const passwordCrackerToolModule: ToolModule = {
   toolId: 'password-cracker',
+  vendorId: 'neoncloud', // Available from NeonCloud
 
   basicSoftware: {
     id: 'password-cracker-basic',

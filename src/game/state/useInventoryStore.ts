@@ -57,9 +57,18 @@ export const useInventoryStore = create<InventoryState>()(
           return false;
         }
 
+        // Check vendor access requirements
+        // Note: Currently only logs warnings, full validation can be added later
+        // For now, vendorId is primarily for organization/reference
+        if (toolModule?.vendorId && toolModule.vendorId !== 'neoncloud') {
+          // TODO: Implement full vendor access requirement checking
+          // This would require async imports and more complex validation
+          console.log(`[Purchase] Tool ${softwareId} is sold by vendor: ${toolModule.vendorId}`);
+        }
+        
         // Apply difficulty multiplier to price
         const difficulty = useGameSettingsStore.getState().difficulty;
-        const adjustedPrice = applyPriceMultiplier(software.price, difficulty);
+        let adjustedPrice = applyPriceMultiplier(software.price, difficulty);
         
         // Check if can afford (using adjusted price)
         const currencyStore = useCurrencyStore.getState();

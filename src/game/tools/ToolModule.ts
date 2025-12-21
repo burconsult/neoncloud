@@ -34,6 +34,13 @@ export interface ToolModule {
   toolId: string;
 
   /**
+   * Vendor/Organization ID that sells this tool
+   * null/undefined = provided by NeonCloud (free/granted)
+   * Organization ID = must be purchased from that vendor
+   */
+  vendorId?: string | null;
+
+  /**
    * Software definitions
    * If tool has basic/premium versions, provide both
    * If tool has only one version, provide only software
