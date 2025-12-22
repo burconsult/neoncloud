@@ -15,6 +15,14 @@ import { createDataExtractionEmail } from '../../emails/emailTemplates';
 export const dataExtractionMissionModule: MissionModule = {
   missionId: 'n00b-02',
   
+  // World Graph Relationships
+  worldGraph: {
+    clientOrganizationId: 'neoncloud', // Mission provided by NeonCloud
+    targetHostIds: ['server-02'], // Target host
+    targetOrganizationIds: ['megacorp'], // Target organization
+    contactId: 'agent-smith', // Contact who briefs the player
+  },
+  
   mission: {
     id: 'n00b-02',
     title: 'Data Extraction: Server-02 Database Access',

@@ -40,8 +40,17 @@ export interface ToolModule {
    * Vendor/Organization ID that sells this tool
    * null/undefined = provided by NeonCloud (free/granted)
    * Organization ID = must be purchased from that vendor
+   * 
+   * This connects the tool to the world graph through Organization.vendorInfo.toolIds
    */
   vendorId?: string | null;
+  
+  /**
+   * Mission IDs that require this tool
+   * Used for graph queries: "What missions need this tool?"
+   * This is informational - actual requirements are in MissionModule.requiredSoftware
+   */
+  requiredByMissionIds?: string[];
 
   /**
    * Software definitions

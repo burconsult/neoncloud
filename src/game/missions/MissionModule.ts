@@ -81,6 +81,36 @@ export interface MissionModule {
    * Can be used for custom cleanup or setup for next mission
    */
   onComplete?: () => void | Promise<void>;
+
+  /**
+   * World Graph Relationships
+   * These connect the mission to world entities through the graph
+   */
+  worldGraph?: {
+    /**
+     * Organization that provides/contracts this mission (client)
+     * e.g., 'neoncloud' for NeonCloud missions
+     */
+    clientOrganizationId?: string;
+    
+    /**
+     * Hosts targeted in this mission
+     * e.g., ['server-01'] for missions targeting server-01
+     */
+    targetHostIds?: string[];
+    
+    /**
+     * Organizations targeted in this mission
+     * e.g., ['megacorp'] for missions targeting Megacorp
+     */
+    targetOrganizationIds?: string[];
+    
+    /**
+     * Contact who briefs the player for this mission
+     * e.g., 'agent-smith' for NeonCloud handler
+     */
+    contactId?: string;
+  };
 }
 
 /**

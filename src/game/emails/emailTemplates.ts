@@ -70,6 +70,12 @@ export function createFirstHackEmail(): Email {
     from: 'contracts@neoncloud-ops.org',
     to: 'agent@neoncloud.local',
     subject: 'Contract Assignment: Server-01 Penetration Test',
+    worldGraph: {
+      fromContactId: 'agent-smith', // Email from Agent Smith
+      fromOrganizationId: 'neoncloud', // Email from NeonCloud
+      relatedHostIds: ['server-01'], // Mentions server-01
+      relatedOrganizationIds: ['megacorp'], // Mentions Megacorp
+    },
     body: `Agent,
 
 We have a new contract assignment for you. A client has requested a penetration test on one of their internal servers. This is your first real operational mission.
@@ -130,6 +136,12 @@ export function createDataExtractionEmail(): Email {
     from: 'contracts@neoncloud-ops.org',
     to: 'agent@neoncloud.local',
     subject: 'Contract Assignment: Server-02 Data Extraction',
+    worldGraph: {
+      fromContactId: 'agent-smith', // Email from Agent Smith
+      fromOrganizationId: 'neoncloud', // Email from NeonCloud
+      relatedHostIds: ['server-02'], // Mentions server-02
+      relatedOrganizationIds: ['megacorp'], // Mentions Megacorp
+    },
     body: `Agent,
 
 Excellent work on your previous mission. We have a more complex assignment for you.

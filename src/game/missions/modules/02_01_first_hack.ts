@@ -10,6 +10,14 @@ import { createFirstHackEmail } from '../../emails/emailTemplates';
 export const firstHackMissionModule: MissionModule = {
   missionId: 'n00b-01',
   
+  // World Graph Relationships
+  worldGraph: {
+    clientOrganizationId: 'neoncloud', // Mission provided by NeonCloud
+    targetHostIds: ['server-01'], // Target host
+    targetOrganizationIds: ['megacorp'], // Target organization
+    contactId: 'agent-smith', // Contact who briefs the player
+  },
+  
   mission: {
     id: 'n00b-01',
     title: 'First Hack: Server-01 Penetration Test',
