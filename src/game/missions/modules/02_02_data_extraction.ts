@@ -1,5 +1,6 @@
 import { MissionModule } from '../MissionModule';
 import { createDataExtractionEmail } from '../../emails/emailTemplates';
+import { getMissionTitle, getMissionDescription, getTaskObjective, getTaskHints, getTaskDescription } from '../missionContentHelpers';
 
 /**
  * Data Extraction Mission Module
@@ -25,8 +26,8 @@ export const dataExtractionMissionModule: MissionModule = {
   
   mission: {
     id: 'n00b-02',
-    title: 'Data Extraction: Server-02 Database Access',
-    description: 'Extract multiple files from a database server and cover your tracks. This mission requires using Log Shredder to delete access logs.',
+    title: getMissionTitle('n00b-02', 'Data Extraction: Server-02 Database Access'),
+    description: getMissionDescription('n00b-02', 'Extract multiple files from a database server and cover your tracks. This mission requires using Log Shredder to delete access logs.'),
     category: 'script-kiddie',
     learningObjectives: [
       'Extract multiple files from different directories',
@@ -40,12 +41,12 @@ export const dataExtractionMissionModule: MissionModule = {
         id: 'task-1',
         description: 'Read the contract email',
         type: 'command',
-        objective: 'Check your email for the server-02 contract details',
-        hints: [
+        objective: getTaskObjective('n00b-02', 'Check your email for the server-02 contract details'),
+        hints: getTaskHints('n00b-02', [
           'Type "mail" to view your inbox',
           'Read the email from contracts@neoncloud-ops.org',
           'The email contains mission details and encrypted credentials',
-        ],
+        ]),
         solution: 'mail read',
         reward: 25,
       },
@@ -76,26 +77,26 @@ export const dataExtractionMissionModule: MissionModule = {
       },
       {
         id: 'task-4',
-        description: 'Decrypt server-02 credentials file',
+        description: getTaskDescription('n00b-02', 'Decrypt server-02 credentials file'),
         type: 'command',
-        objective: 'Crack the encrypted credentials file from the email',
-        hints: [
+        objective: getTaskObjective('n00b-02', 'Crack the encrypted credentials file from the email'),
+        hints: getTaskHints('n00b-02', [
           'The credentials file is in your Documents folder',
           'Use "crack server-02-credentials.enc" to decrypt it',
           'Make sure you have the password cracker tool',
-        ],
+        ]),
         solution: 'crack',
         reward: 30,
       },
       {
         id: 'task-5',
-        description: 'Connect to server-02',
+        description: getTaskDescription('n00b-02', 'Connect to server-02'),
         type: 'command',
-        objective: 'Connect to server-02 using the extracted credentials',
-        hints: [
+        objective: getTaskObjective('n00b-02', 'Connect to server-02 using the extracted credentials'),
+        hints: getTaskHints('n00b-02', [
           'Type "connect server-02" after decrypting credentials',
           'Credentials are automatically loaded after decryption',
-        ],
+        ]),
         solution: 'connect server-02',
         reward: 30,
       },
@@ -140,13 +141,13 @@ export const dataExtractionMissionModule: MissionModule = {
       },
       {
         id: 'task-9',
-        description: 'Disconnect from server-02',
+        description: getTaskDescription('n00b-02', 'Disconnect from server-02'),
         type: 'command',
-        objective: 'Disconnect from server-02 after completing the mission',
-        hints: [
+        objective: getTaskObjective('n00b-02', 'Disconnect from server-02 after completing the mission'),
+        hints: getTaskHints('n00b-02', [
           'Use "disconnect" to disconnect from the server',
           'Always disconnect after completing objectives',
-        ],
+        ]),
         solution: 'disconnect',
         reward: 25,
       },
