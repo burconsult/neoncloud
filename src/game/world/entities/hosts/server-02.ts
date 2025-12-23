@@ -5,6 +5,319 @@
 
 import { Host } from '../../types/Host';
 import { FileSystem } from '@/types';
+import { ExtendedFileSystem, DEFAULT_FILE_METADATA, USER_HOME_METADATA } from '../../../filesystem/types';
+
+/**
+ * Create file system for server-02
+ * Database server with realistic Linux structure
+ */
+function createServer02FileSystem(): FileSystem {
+  const fs: ExtendedFileSystem = {
+    '/': {
+      type: 'directory',
+      name: 'root',
+      metadata: {
+        permissions: '0755',
+        owner: 'root',
+        group: 'root',
+      },
+    },
+    '/home': {
+      type: 'directory',
+      name: 'home',
+      metadata: {
+        permissions: '0755',
+        owner: 'root',
+        group: 'root',
+      },
+      children: {
+        'admin': {
+          type: 'directory',
+          name: 'admin',
+          metadata: USER_HOME_METADATA,
+          children: {
+            '.bash_history': {
+              type: 'file',
+              name: '.bash_history',
+              content: `ls
+cd database
+cat customers/customer-data.txt
+mysql -u admin -p`,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'admin',
+                group: 'admin',
+                permissions: '0600',
+                size: 70,
+              },
+            },
+            'Desktop': {
+              type: 'directory',
+              name: 'Desktop',
+              metadata: {
+                ...USER_HOME_METADATA,
+                permissions: '0755',
+              },
+              children: {},
+            },
+          },
+        },
+      },
+    },
+    '/home/admin/database': {
+      type: 'directory',
+      name: 'database',
+      metadata: {
+        permissions: '0755',
+        owner: 'admin',
+        group: 'admin',
+      },
+      children: {
+        'customers': {
+          type: 'directory',
+          name: 'customers',
+          metadata: {
+            permissions: '0755',
+            owner: 'admin',
+            group: 'admin',
+          },
+          children: {
+            'customer-data.txt': {
+              type: 'file',
+              name: 'customer-data.txt',
+              content: `CUSTOMER DATABASE - EXTRACTED
+
+Mission Objective: Extract this file
+
+This file contains customer information from the Megacorp database.
+The data has been successfully retrieved.
+
+Customer Records:
+- Total customers: 1,234
+- Active subscriptions: 856
+- Revenue data: Classified
+
+Remember to cover your tracks after extraction.`,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'admin',
+                group: 'admin',
+                permissions: '0644',
+                size: 300,
+              },
+            },
+          },
+        },
+        'reports': {
+          type: 'directory',
+          name: 'reports',
+          metadata: {
+            permissions: '0755',
+            owner: 'admin',
+            group: 'admin',
+          },
+          children: {
+            'financial-report.txt': {
+              type: 'file',
+              name: 'financial-report.txt',
+              content: `FINANCIAL REPORT - CLASSIFIED
+
+Mission Objective: Extract this file
+
+This file contains financial data from Megacorp's database.
+The report has been successfully retrieved.
+
+Financial Summary:
+- Q1 Revenue: $2.5M
+- Q2 Revenue: $3.1M
+- Q3 Revenue: $3.8M
+- Total Assets: $15.2M
+
+This data is highly sensitive. Handle with care.`,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'admin',
+                group: 'admin',
+                permissions: '0644',
+                size: 280,
+              },
+            },
+          },
+        },
+      },
+    },
+    '/var': {
+      type: 'directory',
+      name: 'var',
+      metadata: {
+        permissions: '0755',
+        owner: 'root',
+        group: 'root',
+      },
+      children: {
+        'lib': {
+          type: 'directory',
+          name: 'lib',
+          metadata: {
+            permissions: '0755',
+            owner: 'root',
+            group: 'root',
+          },
+          children: {
+            'mysql': {
+              type: 'directory',
+              name: 'mysql',
+              metadata: {
+                permissions: '0750',
+                owner: 'mysql',
+                group: 'mysql',
+              },
+              children: {
+                'ibdata1': {
+                  type: 'file',
+                  name: 'ibdata1',
+                  content: 'MySQL system tablespace data...',
+                  metadata: {
+                    ...DEFAULT_FILE_METADATA,
+                    owner: 'mysql',
+                    group: 'mysql',
+                    permissions: '0660',
+                    size: 1024 * 1024, // 1MB
+                  },
+                },
+              },
+            },
+          },
+        },
+        'log': {
+          type: 'directory',
+          name: 'log',
+          metadata: {
+            permissions: '0755',
+            owner: 'root',
+            group: 'syslog',
+          },
+          children: {
+            'mysql': {
+              type: 'directory',
+              name: 'mysql',
+              metadata: {
+                permissions: '0750',
+                owner: 'mysql',
+                group: 'adm',
+              },
+              children: {
+                'error.log': {
+                  type: 'file',
+                  name: 'error.log',
+                  content: `[2024-01-20] MySQL server started
+[2024-01-20] Database connection established
+[2024-01-20] Query executed successfully`,
+                  metadata: {
+                    ...DEFAULT_FILE_METADATA,
+                    owner: 'mysql',
+                    group: 'adm',
+                    permissions: '0640',
+                    size: 700,
+                  },
+                },
+                'access.log': {
+                  type: 'file',
+                  name: 'access.log',
+                  content: `[2024-01-20 14:15:30] SSH connection from 192.168.1.150
+[2024-01-20 14:16:45] User login: admin
+[2024-01-20 14:17:12] Database query: SELECT * FROM customers
+[2024-01-20 14:18:30] File access: /home/admin/database/customers/customer-data.txt
+[2024-01-20 14:19:15] File access: /home/admin/database/reports/financial-report.txt`,
+                  metadata: {
+                    ...DEFAULT_FILE_METADATA,
+                    owner: 'mysql',
+                    group: 'adm',
+                    permissions: '0640',
+                    size: 800,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/etc': {
+      type: 'directory',
+      name: 'etc',
+      metadata: {
+        permissions: '0755',
+        owner: 'root',
+        group: 'root',
+      },
+      children: {
+        'mysql': {
+          type: 'directory',
+          name: 'mysql',
+          metadata: {
+            permissions: '0755',
+            owner: 'root',
+            group: 'root',
+          },
+          children: {
+            'my.cnf': {
+              type: 'file',
+              name: 'my.cnf',
+              content: `[mysqld]
+port=3306
+bind-address=127.0.0.1
+datadir=/var/lib/mysql
+log-error=/var/log/mysql/error.log`,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'root',
+                group: 'root',
+                permissions: '0644',
+                size: 60,
+              },
+            },
+          },
+        },
+      },
+    },
+    '/tmp': {
+      type: 'directory',
+      name: 'tmp',
+      metadata: {
+        permissions: '1777',
+        owner: 'root',
+        group: 'root',
+      },
+      children: {},
+    },
+    '/root': {
+      type: 'directory',
+      name: 'root',
+      metadata: {
+        permissions: '0700',
+        owner: 'root',
+        group: 'root',
+      },
+      children: {
+        'README.txt': {
+          type: 'file',
+          name: 'README.txt',
+          content: 'This is the root directory. Access is restricted.',
+          metadata: {
+            ...DEFAULT_FILE_METADATA,
+            owner: 'root',
+            group: 'root',
+            permissions: '0600',
+            size: 50,
+          },
+        },
+      },
+    },
+  };
+  
+  return fs as FileSystem;
+}
 
 export const server02Host: Host = {
   id: 'server-02',
@@ -48,13 +361,9 @@ export const server02Host: Host = {
     requiresCracking: true,
   },
   
-  // File System
+  // File System - Defined directly in host entity
   fileSystemId: 'server-02',
-  fileSystemFactory: () => {
-    // Import dynamically to avoid circular dependencies
-    // This will be resolved at runtime
-    return null as any; // Actual implementation via getServerFileSystem fallback
-  },
+  fileSystemFactory: createServer02FileSystem,
   
   // Network Topology
   networkConnections: [
