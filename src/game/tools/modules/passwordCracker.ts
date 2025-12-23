@@ -194,7 +194,7 @@ export const passwordCrackerToolModule: ToolModule = {
                   
                   // Format the decrypted content nicely
                   const formattedContent = decryptedText.includes('SERVER_ID:') 
-                    ? `Decrypted Credentials for server-01:\nUsername: admin\nPassword: ${password}`
+                    ? `Decrypted Credentials:\nUsername: admin\nPassword: ${password}`
                     : decryptedText;
                   
                   // Create a new .txt file with the decrypted content (keep original .enc file encrypted)
