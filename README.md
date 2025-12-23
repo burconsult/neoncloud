@@ -31,19 +31,45 @@ Players interact with a terminal-style interface to:
 
 ```
 neoncloud/
-├── docs/                    # Documentation
-│   ├── game-design.md      # Detailed game design document
-│   ├── agile-planning.md   # Sprint planning and user stories
-│   └── architecture.md     # Technical architecture
+├── docs/                           # Documentation
+│   ├── game-design.md              # Detailed game design document
+│   ├── agile-planning.md           # Sprint planning and user stories
+│   └── architecture.md             # Technical architecture
 ├── src/
-│   ├── components/         # React components
-│   ├── game/               # Game logic and state
-│   ├── terminal/           # Terminal emulator
-│   ├── missions/           # Educational missions/challenges
-│   ├── assets/             # Game assets
-│   └── utils/              # Utilities
-├── public/                 # Static assets
-└── tests/                  # Test files
+│   ├── components/                 # React components
+│   │   ├── terminal/              # Terminal emulator components
+│   │   ├── mission/                # Mission panel and UI
+│   │   ├── store/                  # Software store UI
+│   │   ├── currency/               # Currency display
+│   │   ├── educational/            # Educational popups
+│   │   ├── intro/                  # Start screen
+│   │   ├── end/                    # End screen
+│   │   └── ui/                     # Reusable UI components
+│   ├── game/                       # Core game logic
+│   │   ├── world/                  # World graph system
+│   │   │   ├── graph/              # Graph relationships and queries
+│   │   │   ├── registry/           # Central entity registry
+│   │   │   ├── entities/           # Entity definitions (hosts, orgs, contacts)
+│   │   │   ├── discovery/          # Discovery system
+│   │   │   └── types/              # Entity type definitions
+│   │   ├── missions/               # Mission system
+│   │   │   ├── modules/            # Individual mission definitions
+│   │   │   └── ...                 # Mission loading, ordering, handlers
+│   │   ├── tools/                  # Tool/software system
+│   │   │   └── modules/            # Individual tool definitions
+│   │   ├── commands/               # Command implementations
+│   │   ├── state/                  # Zustand state stores
+│   │   ├── events/                 # Event bus system
+│   │   ├── filesystem/             # File system simulation
+│   │   ├── network/                 # Network simulation
+│   │   ├── time/                   # Time and duration system
+│   │   └── ...                     # Other game systems
+│   ├── types/                      # TypeScript type definitions
+│   ├── utils/                      # Utility functions
+│   └── styles/                     # Global styles
+├── public/                         # Static assets
+├── tests/                          # Test files
+└── scripts/                         # Build and utility scripts
 ```
 
 ## 🚀 Getting Started
@@ -77,13 +103,69 @@ npm run build
 - Educational institutions
 - Self-learners exploring cybersecurity
 
+## 🌐 World Graph System
+
+NeonCloud uses a sophisticated **World Graph System** to manage all game entities and their relationships. This graph-driven architecture enables:
+
+### Core Components
+
+- **World Registry**: Central registry for all entities (hosts, organizations, contacts, vendors)
+- **World Graph**: Manages relationships between entities (ownership, connections, missions)
+- **Discovery System**: Tracks player knowledge of the world (discovered hosts, organizations, etc.)
+- **Entity Definitions**: Modular entity files that define hosts, organizations, and contacts with all their properties
+
+### Entity Types
+
+1. **Hosts**: Servers and network devices with:
+   - IP addresses and domain names
+   - File systems (defined per-host)
+   - Security configurations
+   - Network connections
+   - Organization ownership
+
+2. **Organizations**: Companies and entities with:
+   - Domain names and IP ranges
+   - Associated hosts and contacts
+   - Classification (target, employer, vendor, neutral)
+   - Mission relationships
+
+3. **Contacts**: NPCs and characters with:
+   - Organization affiliations
+   - Email capabilities
+   - Mission briefing roles
+
+4. **Vendors**: Tool and software providers (future expansion)
+
+### Benefits
+
+- **Modularity**: Add new entities by creating a single file
+- **Consistency**: Graph queries ensure consistent entity relationships
+- **Extensibility**: Easy to add new entity types and relationships
+- **Discovery**: Players discover entities through missions, scanning, DNS lookups
+- **Dynamic Content**: Mission descriptions and hints use graph queries for dynamic content
+
+### Example Usage
+
+```typescript
+// Query hosts targeted by a mission
+const targetHosts = getMissionTargetHosts('n00b-01');
+
+// Get organization for a host
+const org = worldGraph.getOrganizationByHost('server-01');
+
+// Check if entity is discovered
+const isDiscovered = discoveryStore.isHostDiscovered('server-01');
+```
+
 ## 📋 Development Methodology
 
-- **Agile/Scrum**: 2-week sprints
-- **User Stories**: Feature-driven development
+- **AI-Assisted Development**: Built using [Cursor AI](https://cursor.sh) with agent auto mode for rapid iteration and code generation
+- **Agile/Scrum**: 2-week sprints with feature-driven development
+- **Modular Architecture**: Self-contained modules for missions, tools, and entities
+- **Graph-Driven Design**: World graph system for managing entity relationships
+- **Event-Driven Architecture**: Decoupled systems using event bus for communication
 - **Continuous Integration**: Automated testing and builds
-- **Code Reviews**: Quality assurance
-- **Documentation**: Living documentation approach
+- **Documentation**: Living documentation approach with inline code documentation
 
 ## 👤 Author
 
