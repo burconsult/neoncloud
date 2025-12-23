@@ -9,6 +9,7 @@ import { eventBus, CommandExecutedEvent, FileReadEvent, ServerConnectedEvent, Se
 import { useMissionStore } from '../state/useMissionStore';
 import { useFileSystemStore } from '../state/useFileSystemStore';
 import { createCommandRegistry } from '../commands/commandRegistry';
+import { getMissionTargetHosts } from '../world/graph/WorldGraphQueries';
 
 /**
  * Task matcher interface
@@ -76,29 +77,31 @@ export function registerMissionEventHandlers(): void {
         const fileSystemStore = useFileSystemStore.getState();
         const activeServerId = fileSystemStore.activeServerId;
         
-        // For n00b-01 task-8: reading secret.txt on server-01
-        // Must be exactly 'secret.txt' (not a substring match like 'credentials.enc' containing something)
+        // Get target hosts for this mission from world graph
+        const targetHostIds = getMissionTargetHosts(currentMission.id);
+        
+        // For n00b-01 task-8: reading secret.txt on mission target host
         if (currentMission.id === 'n00b-01' && task.id === 'task-8') {
-          // Check exact filename match and server
-          if (activeServerId === 'server-01' && event.filename === 'secret.txt') {
+          // Check if active server is a mission target and filename matches
+          if (targetHostIds.includes(activeServerId || '') && event.filename === 'secret.txt') {
             // Verify the path contains /home/admin/data or /data to ensure it's the correct file location
             if (event.filePath.includes('/home/admin/data') || event.filePath.includes('/data')) {
               missionStore.completeTask(currentMission.id, task.id);
             }
           }
         }
-        // For n00b-02 task-6: reading customer-data.txt on server-02
+        // For n00b-02 task-6: reading customer-data.txt on mission target host
         if (currentMission.id === 'n00b-02' && task.id === 'task-6') {
-          if (activeServerId === 'server-02' && event.filename === 'customer-data.txt') {
+          if (targetHostIds.includes(activeServerId || '') && event.filename === 'customer-data.txt') {
             // Verify path contains /home/admin/database/customers or /database/customers
             if (event.filePath.includes('/home/admin/database/customers') || event.filePath.includes('/database/customers')) {
               missionStore.completeTask(currentMission.id, task.id);
             }
           }
         }
-        // For n00b-02 task-7: reading financial-report.txt on server-02
+        // For n00b-02 task-7: reading financial-report.txt on mission target host
         if (currentMission.id === 'n00b-02' && task.id === 'task-7') {
-          if (activeServerId === 'server-02' && event.filename === 'financial-report.txt') {
+          if (targetHostIds.includes(activeServerId || '') && event.filename === 'financial-report.txt') {
             // Verify path contains /home/admin/database/reports or /database/reports
             if (event.filePath.includes('/home/admin/database/reports') || event.filePath.includes('/database/reports')) {
               missionStore.completeTask(currentMission.id, task.id);
@@ -134,15 +137,18 @@ export function registerMissionEventHandlers(): void {
       );
       
       if (isConnectOrSSHSolution) {
-        // For n00b-01 task-7: connect to server-01
+        // Get target hosts for this mission from world graph
+        const targetHostIds = getMissionTargetHosts(currentMission.id);
+        
+        // For n00b-01 task-7: connect to mission target host
         if (currentMission.id === 'n00b-01' && task.id === 'task-7') {
-          if (event.serverId === 'server-01') {
+          if (targetHostIds.includes(event.serverId)) {
             missionStore.completeTask(currentMission.id, task.id);
           }
         }
-        // For n00b-02 task-5: connect to server-02
+        // For n00b-02 task-5: connect to mission target host
         if (currentMission.id === 'n00b-02' && task.id === 'task-5') {
-          if (event.serverId === 'server-02') {
+          if (targetHostIds.includes(event.serverId)) {
             missionStore.completeTask(currentMission.id, task.id);
           }
         }
@@ -175,15 +181,18 @@ export function registerMissionEventHandlers(): void {
       }
       
       // Match disconnect tasks based on mission and task ID
-          // For n00b-01 task-9: disconnect from server-01
-          if (currentMission.id === 'n00b-01' && task.id === 'task-9') {
-        if (event.serverId === 'server-01') {
+      // Get target hosts for this mission from world graph
+      const targetHostIds = getMissionTargetHosts(currentMission.id);
+      
+      // For n00b-01 task-9: disconnect from mission target host
+      if (currentMission.id === 'n00b-01' && task.id === 'task-9') {
+        if (targetHostIds.includes(event.serverId)) {
           missionStore.completeTask(currentMission.id, task.id);
         }
       }
-      // For n00b-02 task-9: disconnect from server-02
+      // For n00b-02 task-9: disconnect from mission target host
       if (currentMission.id === 'n00b-02' && task.id === 'task-9') {
-        if (event.serverId === 'server-02') {
+        if (targetHostIds.includes(event.serverId)) {
           missionStore.completeTask(currentMission.id, task.id);
         }
       }
@@ -310,34 +319,32 @@ function matchesCommandSolution(
   // MUST be checked BEFORE generic command matching to prevent false positives
   // These tasks require reading specific files on specific servers
   if (solution === 'cat' && command === 'cat') {
-      // For n00b-01 task-8: must read secret.txt on server-01
-    if (missionId === 'n00b-01' && taskId === 'task-7') {
-      // Check that user is on server-01 and reading secret.txt
-      const fileSystemStore = useFileSystemStore.getState();
-      const activeServerId = fileSystemStore.activeServerId;
-      // Must be on server-01 AND reading secret.txt (exact filename match, not substring)
-      if (activeServerId !== 'server-01') {
-        return false; // Not on the correct server
+    // Get target hosts for this mission from world graph
+    const targetHostIds = getMissionTargetHosts(missionId);
+    const fileSystemStore = useFileSystemStore.getState();
+    const activeServerId = fileSystemStore.activeServerId;
+    
+    // For n00b-01 task-8: must read secret.txt on mission target host
+    if (missionId === 'n00b-01' && taskId === 'task-8') {
+      // Check that user is on a mission target host and reading secret.txt
+      if (!targetHostIds.includes(activeServerId || '')) {
+        return false; // Not on a mission target server
       }
       // Check if the filename contains secret.txt (but not as part of another filename like credentials.enc)
       // Allow paths like "/home/data/secret.txt" or "secret.txt" or "data/secret.txt"
       const normalizedArgs = argsString.trim();
       return normalizedArgs.includes('secret.txt') && !normalizedArgs.includes('credentials');
     }
-    // For n00b-02 task-6: must read customer-data.txt on server-02
+    // For n00b-02 task-6: must read customer-data.txt on mission target host
     if (missionId === 'n00b-02' && taskId === 'task-6') {
-      const fileSystemStore = useFileSystemStore.getState();
-      const activeServerId = fileSystemStore.activeServerId;
-      if (activeServerId !== 'server-02') {
+      if (!targetHostIds.includes(activeServerId || '')) {
         return false;
       }
       return argsString.includes('customer-data.txt');
     }
-    // For n00b-02 task-7: must read financial-report.txt on server-02
+    // For n00b-02 task-7: must read financial-report.txt on mission target host
     if (missionId === 'n00b-02' && taskId === 'task-7') {
-      const fileSystemStore = useFileSystemStore.getState();
-      const activeServerId = fileSystemStore.activeServerId;
-      if (activeServerId !== 'server-02') {
+      if (!targetHostIds.includes(activeServerId || '')) {
         return false;
       }
       return argsString.includes('financial-report.txt');

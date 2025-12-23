@@ -1,4 +1,5 @@
 import { Email } from '@/types/email';
+import { getHostDisplayName, getOrganizationDisplayName } from '../world/graph/WorldGraphQueries';
 
 /**
  * Email templates for the game
@@ -65,11 +66,24 @@ Keep practicing your skills!`,
  * First hack mission email - sent when n00b-01 mission starts
  */
 export function createFirstHackEmail(): Email {
+  // Get display names and info from world graph
+  const targetHostName = getHostDisplayName('server-01');
+  const targetOrgName = getOrganizationDisplayName('megacorp');
+  
+  // Get host IP from registry for dynamic content
+  const { worldRegistry } = await import('../world/registry/WorldRegistry');
+  const host = worldRegistry.getHost('server-01');
+  const hostIP = host?.ipAddress || '192.168.1.100';
+  
+  // Get organization IP range
+  const org = worldRegistry.getOrganization('megacorp');
+  const ipRange = org?.ipRange || '192.168.1.0/24';
+  
   return {
     id: 'email-first-hack-001',
     from: 'contracts@neoncloud-ops.org',
     to: 'agent@neoncloud.local',
-    subject: 'Contract Assignment: Server-01 Penetration Test',
+    subject: `Contract Assignment: ${targetHostName} Penetration Test`,
     worldGraph: {
       fromContactId: 'agent-smith', // Email from Agent Smith
       fromOrganizationId: 'neoncloud', // Email from NeonCloud
@@ -81,24 +95,24 @@ export function createFirstHackEmail(): Email {
 We have a new contract assignment for you. A client has requested a penetration test on one of their internal servers. This is your first real operational mission.
 
 **Target Information:**
-- Organization: Megacorp Industries
-- Network: Internal network (192.168.1.0/24)
-- Primary Target: server-01 (discover via network scan)
+- Organization: ${targetOrgName}
+- Network: Internal network (${ipRange})
+- Primary Target: ${targetHostName} (discover via network scan)
 - Purpose: Internal file server
 - Security Level: Basic
 
 **Mission Objectives:**
-1. Scan the Megacorp network (192.168.1.0/24) to discover active hosts
+1. Scan the ${targetOrgName} network (${ipRange}) to discover active hosts
 2. Acquire necessary tools (VPN, Password Cracker) from the store
 3. Connect to VPN for anonymity
 4. Extract server credentials from the encrypted file attached to this email
-5. Connect to server-01 using the extracted credentials
+5. Connect to ${targetHostName} using the extracted credentials
 6. Access the target file located at /home/data/secret.txt
 7. Disconnect and report back
 
 **Important Notes:**
-- Use your Network Scanner to scan the target network range (192.168.1.0/24)
-- This will reveal active hosts including server-01
+- Use your Network Scanner to scan the target network range (${ipRange})
+- This will reveal active hosts including ${targetHostName}
 - Use VPN to protect your identity during this operation
 - The attached file contains encrypted credentials - you'll need your password cracker tool
 - Server access requires both username and password
@@ -131,11 +145,19 @@ contracts@neoncloud-ops.org`,
  * Data extraction mission email - sent when n00b-02 mission starts
  */
 export function createDataExtractionEmail(): Email {
+  // Get display names and info from world graph
+  const targetHostName = getHostDisplayName('server-02');
+  const targetOrgName = getOrganizationDisplayName('megacorp');
+  
+  // Get host IP from registry for dynamic content
+  const host = worldRegistry.getHost('server-02');
+  const hostIP = host?.ipAddress || '192.168.1.101';
+  
   return {
     id: 'email-data-extraction-001',
     from: 'contracts@neoncloud-ops.org',
     to: 'agent@neoncloud.local',
-    subject: 'Contract Assignment: Server-02 Data Extraction',
+    subject: `Contract Assignment: ${targetHostName} Data Extraction`,
     worldGraph: {
       fromContactId: 'agent-smith', // Email from Agent Smith
       fromOrganizationId: 'neoncloud', // Email from NeonCloud
@@ -147,25 +169,25 @@ export function createDataExtractionEmail(): Email {
 Excellent work on your previous mission. We have a more complex assignment for you.
 
 **Target Information:**
-- Server ID: server-02
-- IP Address: 192.168.1.200
+- Server ID: ${targetHostName}
+- IP Address: ${hostIP}
 - Purpose: Database server
 - Security Level: Enhanced
 
 **Mission Objectives:**
 1. Connect to VPN for anonymity
 2. Extract server credentials from the encrypted file attached
-3. Connect to server-02 using the extracted credentials
+3. Connect to ${targetHostName} using the extracted credentials
 4. Locate and extract target data files:
-   - customer-data.txt in /home/database/customers/
-   - financial-report.txt in /home/database/reports/
+   - customer-data.txt in /home/admin/database/customers/
+   - financial-report.txt in /home/admin/database/reports/
 5. Use Log Shredder to delete access logs and cover your tracks
 6. Disconnect and report back
 
 **Important Notes:**
 - This server has enhanced security - be thorough
 - Multiple files need to be extracted - check different directories
-- Access logs are located in /home/logs/access.log - delete them after extraction
+- Access logs are located in /var/log/auth.log - delete them after extraction
 - You'll need a Log Shredder tool (available in store after completing n00b-01)
 
 The encrypted credentials file is attached. Extract the password, then connect using:
