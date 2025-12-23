@@ -248,40 +248,28 @@ This document provides a clear assessment of what's **actually implemented** vs 
 
 ---
 
-## Immediate Action Items
+## ✅ Completed: Hardcoded References Removed
 
-### 1. Audit Hardcoded References
+### 1. Mission Event Handlers ✅
+- ✅ `src/game/missions/missionEventHandlers.ts` - All hardcoded IDs replaced with `getMissionTargetHosts()`
+- ✅ Server connection/disconnection/file reading checks now use graph queries
+- ✅ New missions work automatically without code changes
 
-**Files to Check**:
-- [ ] `src/game/missions/missionEventHandlers.ts` - Check for hardcoded IDs
-- [ ] `src/game/emails/emailTemplates.ts` - Check for hardcoded names
-- [ ] `src/game/missions/modules/*.ts` - Check descriptions/hints
-- [ ] `src/game/network/dnsSimulation.ts` - Check host lookups
-- [ ] `src/game/network/networkSimulation.ts` - Check host references
+### 2. Email Templates ✅
+- ✅ `src/game/emails/emailTemplates.ts` - All hardcoded names replaced with display name helpers
+- ✅ Uses `getHostDisplayName()` and `getOrganizationDisplayName()`
+- ✅ Dynamically gets IP addresses and IP ranges from world registry
+- ✅ Email content generated from graph data
 
-### 2. Replace with Graph Queries
+### 3. Mission Modules ✅
+- ✅ `src/game/missions/modules/02_01_first_hack.ts` - All descriptions/hints use dynamic helpers
+- ✅ `src/game/missions/modules/02_02_data_extraction.ts` - All descriptions/hints use dynamic helpers
+- ✅ Created `missionContentHelpers.ts` for reusable dynamic content generation
+- ✅ Mission titles, descriptions, objectives, and hints all flow through graph
 
-**Pattern to Follow**:
-```typescript
-// ❌ BAD: Hardcoded
-if (serverId === 'server-01') { ... }
-
-// ✅ GOOD: Graph query
-const missionHosts = worldGraph.getHostsByMission(missionId);
-if (missionHosts.some(h => h.id === serverId)) { ... }
-```
-
-### 3. Use Display Name Helpers
-
-**Pattern to Follow**:
-```typescript
-// ❌ BAD: Hardcoded
-subject: 'Contract: Server-01 Penetration Test'
-
-// ✅ GOOD: Graph query
-const hostName = worldGraphQueries.getHostDisplayName('server-01');
-subject: `Contract: ${hostName} Penetration Test`
-```
+### 4. Network/DNS Simulation ✅
+- ✅ `src/game/network/dnsSimulation.ts` - Already uses `worldRegistry.findHostByDomain()`
+- ✅ `src/game/network/networkSimulation.ts` - Already uses `worldRegistry.findHostByIP()`
 
 ---
 
@@ -289,12 +277,12 @@ subject: `Contract: ${hostName} Penetration Test`
 
 The graph system will be "solid" when:
 
-1. ✅ **Zero hardcoded entity IDs** in mission/email/command logic
-2. ✅ **All entity lookups** go through world registry
-3. ✅ **All relationship queries** go through world graph
-4. ✅ **Dynamic content** uses graph queries (display names, etc.)
-5. ✅ **Performance** is acceptable (indexes for common queries)
-6. ✅ **Integrity** is maintained (validation, bidirectional relationships)
+1. ✅ **Zero hardcoded entity IDs** in mission/email/command logic - **COMPLETE**
+2. ✅ **All entity lookups** go through world registry - **COMPLETE**
+3. ✅ **All relationship queries** go through world graph - **COMPLETE**
+4. ✅ **Dynamic content** uses graph queries (display names, etc.) - **COMPLETE**
+5. ⚠️ **Performance** is acceptable (indexes for common queries) - **TODO: Add indexes**
+6. ⚠️ **Integrity** is maintained (validation, bidirectional relationships) - **TODO: Add validation**
 
 ---
 
