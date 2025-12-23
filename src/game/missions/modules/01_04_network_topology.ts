@@ -46,7 +46,7 @@ export const networkTopologyMissionModule: MissionModule = {
       },
     ],
     prerequisites: ['network-01'],
-    unlocks: ['network-03'],
+    // unlocks: ['network-03'] - Removed: Dynamic ordering system handles next mission automatically
     reward: 150,
   },
 

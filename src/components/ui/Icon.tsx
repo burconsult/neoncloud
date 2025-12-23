@@ -44,6 +44,7 @@ import {
 const iconMap: Record<string, React.ComponentType<any>> = {
   // Command icons
   'help': HelpCircle,
+  'help-circle': HelpCircle,
   'echo': MessageSquare,
   'clear': Trash2,
   'cls': Trash2,
@@ -68,6 +69,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'configure': Settings,
   'monitor': Eye,
   'secure': Shield,
+  'shield': Shield,
   'terminal': Terminal,
   'code': Code,
   'server': Server,

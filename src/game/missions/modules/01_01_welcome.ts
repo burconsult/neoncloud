@@ -53,7 +53,7 @@ export const welcomeMissionModule: MissionModule = {
       },
     ],
     prerequisites: [],
-    unlocks: ['tutorial-01'],
+    // unlocks: ['tutorial-01'] - Removed: Dynamic ordering system handles next mission automatically
     reward: 25,
   },
 

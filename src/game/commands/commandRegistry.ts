@@ -256,6 +256,7 @@ const cdCommand: Command = {
 // Cat command
 const catCommand: Command = {
   name: 'cat',
+  aliases: ['nano'],
   description: 'Display file contents',
   usage: 'cat [file]',
   execute: (args: string[]): CommandResult => {

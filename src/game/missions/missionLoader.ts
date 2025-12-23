@@ -12,6 +12,8 @@ import { networkTopologyMissionModule } from './modules/01_04_network_topology';
 import { dnsExplorationMissionModule } from './modules/01_05_dns_exploration';
 import { firstHackMissionModule } from './modules/02_01_first_hack';
 import { dataExtractionMissionModule } from './modules/02_02_data_extraction';
+import { networkInvestigationMissionModule } from './modules/02_03_network_investigation';
+import { advancedPenetrationMissionModule } from './modules/03_01_advanced_penetration';
 
 /**
  * Load all mission modules
@@ -41,9 +43,10 @@ export function loadMissionModules(): void {
   // Script Kiddie missions (02)
   missionRegistry.register(firstHackMissionModule); // 02_01_first_hack
   missionRegistry.register(dataExtractionMissionModule); // 02_02_data_extraction
+  missionRegistry.register(networkInvestigationMissionModule); // 02_03_network_investigation
   
   // Cyber Warrior missions (03)
-  // Future missions will be added here
+  missionRegistry.register(advancedPenetrationMissionModule); // 03_01_advanced_penetration
   
   // Digital Ninja missions (04)
   // Future missions will be added here

@@ -222,7 +222,7 @@ export function MissionPanel() {
                                 aria-label={`Show hints for ${task.description}`}
                                 title="Click to view hints"
                               >
-                                <Icon name="help-circle" size={14} aria-hidden={true} />
+                                <Icon name="help" size={14} aria-hidden={true} />
                                 <span>Hints</span>
                               </button>
                             )}

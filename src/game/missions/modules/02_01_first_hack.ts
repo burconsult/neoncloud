@@ -148,7 +148,7 @@ export const firstHackMissionModule: MissionModule = {
       },
     ],
     prerequisites: ['network-03'],
-    unlocks: ['n00b-02'],
+    // unlocks: ['n00b-02'] - Removed: Dynamic ordering system handles next mission automatically
     reward: 300,
   },
 

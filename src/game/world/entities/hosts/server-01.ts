@@ -9,9 +9,10 @@ import { ExtendedFileSystem, DEFAULT_FILE_METADATA, USER_HOME_METADATA } from '.
 
 /**
  * Create file system for server-01
- * Realistic Linux-style structure with user home directories
+ * Realistic Linux-style tree structure with / as system root
  */
 function createServer01FileSystem(): FileSystem {
+  const now = Date.now();
   const fs: ExtendedFileSystem = {
     '/': {
       type: 'directory',
@@ -20,63 +21,38 @@ function createServer01FileSystem(): FileSystem {
         permissions: '0755',
         owner: 'root',
         group: 'root',
-      },
-    },
-    '/home': {
-      type: 'directory',
-      name: 'home',
-      metadata: {
-        permissions: '0755',
-        owner: 'root',
-        group: 'root',
+        modified: now,
       },
       children: {
-        'admin': {
+        'home': {
           type: 'directory',
-          name: 'admin',
-          metadata: USER_HOME_METADATA,
-          children: {
-            '.bash_history': {
-              type: 'file',
-              name: '.bash_history',
-              content: `cd /var/log
-cat syslog
-ls -la /home/data
-exit`,
-              metadata: {
-                ...DEFAULT_FILE_METADATA,
-                owner: 'admin',
-                group: 'admin',
-                permissions: '0600',
-                size: 45,
-              },
-            },
-            'Desktop': {
-              type: 'directory',
-              name: 'Desktop',
-              metadata: {
-                ...USER_HOME_METADATA,
-                permissions: '0755',
-              },
-              children: {},
-            },
+          name: 'home',
+          metadata: {
+            permissions: '0755',
+            owner: 'root',
+            group: 'root',
+            modified: now,
           },
-        },
-      },
-    },
-    '/home/admin/data': {
-      type: 'directory',
-      name: 'data',
-      metadata: {
-        permissions: '0755',
-        owner: 'admin',
-        group: 'admin',
-      },
-      children: {
-        'secret.txt': {
-          type: 'file',
-          name: 'secret.txt',
-          content: `SECRET DATA - CLASSIFIED
+          children: {
+            'admin': {
+              type: 'directory',
+              name: 'admin',
+              metadata: { ...USER_HOME_METADATA, owner: 'admin', group: 'admin', modified: now },
+              children: {
+                'data': {
+                  type: 'directory',
+                  name: 'data',
+                  metadata: {
+                    permissions: '0755',
+                    owner: 'admin',
+                    group: 'admin',
+                    modified: now,
+                  },
+                  children: {
+                    'secret.txt': {
+                      type: 'file',
+                      name: 'secret.txt',
+                      content: `SECRET DATA - CLASSIFIED
 
 Mission Objective: Extract this file
 
@@ -86,151 +62,282 @@ The contents have been successfully retrieved.
 Congratulations! You've completed the file extraction phase of your mission.
 
 Remember to disconnect from the server after completing your objectives.`,
-          metadata: {
-            ...DEFAULT_FILE_METADATA,
-            owner: 'admin',
-            group: 'admin',
-            permissions: '0644',
-            size: 250,
-          },
-        },
-        'config.ini': {
-          type: 'file',
-          name: 'config.ini',
-          content: `[server]
+                      metadata: {
+                        ...DEFAULT_FILE_METADATA,
+                        owner: 'admin',
+                        group: 'admin',
+                        permissions: '0644',
+                        size: 312,
+                        modified: now,
+                      },
+                    },
+                    'config.ini': {
+                      type: 'file',
+                      name: 'config.ini',
+                      content: `[server]
 host=server-01
 port=22
 protocol=ssh
-status=active`,
-          metadata: {
-            ...DEFAULT_FILE_METADATA,
-            owner: 'admin',
-            group: 'admin',
-            permissions: '0644',
-            size: 180,
+
+[network]
+ip=192.168.1.100
+subnet=255.255.255.0
+
+[security]
+firewall=disabled
+# Note: This server has firewall disabled for training purposes
+# More secure servers will require Firewall Bypass Tool
+encryption=AES-256`,
+                      metadata: {
+                        ...DEFAULT_FILE_METADATA,
+                        owner: 'admin',
+                        group: 'admin',
+                        permissions: '0644',
+                        size: 248,
+                        modified: now,
+                      },
+                    },
+                  },
+                },
+                '.bash_history': {
+                  type: 'file',
+                  name: '.bash_history',
+                  content: `cd /var/log
+cat syslog
+ls -la /home/admin/data
+exit`,
+                  metadata: {
+                    ...DEFAULT_FILE_METADATA,
+                    owner: 'admin',
+                    group: 'admin',
+                    permissions: '0600',
+                    size: 45,
+                    modified: now,
+                  },
+                },
+                'Desktop': {
+                  type: 'directory',
+                  name: 'Desktop',
+                  metadata: {
+                    ...USER_HOME_METADATA,
+                    permissions: '0755',
+                    modified: now,
+                  },
+                  children: {},
+                },
+              },
+            },
           },
         },
-      },
-    },
-    '/var': {
-      type: 'directory',
-      name: 'var',
-      metadata: {
-        permissions: '0755',
-        owner: 'root',
-        group: 'root',
-      },
-      children: {
-        'log': {
+        'var': {
           type: 'directory',
-          name: 'log',
+          name: 'var',
           metadata: {
             permissions: '0755',
             owner: 'root',
-            group: 'syslog',
+            group: 'root',
+            modified: now,
           },
           children: {
-            'syslog': {
-              type: 'file',
-              name: 'syslog',
-              content: `[2024-01-15] System startup
-[2024-01-15] SSH service started
-[2024-01-15] Web server started on port 80`,
+            'log': {
+              type: 'directory',
+              name: 'log',
               metadata: {
-                ...DEFAULT_FILE_METADATA,
+                permissions: '0755',
                 owner: 'root',
-                group: 'adm',
-                permissions: '0640',
-                size: 1024,
+                group: 'syslog',
+                modified: now,
               },
-            },
-            'auth.log': {
-              type: 'file',
-              name: 'auth.log',
-              content: `[2024-01-15] SSH login attempt from 192.168.1.50
-[2024-01-15] User admin logged in successfully`,
-              metadata: {
-                ...DEFAULT_FILE_METADATA,
-                owner: 'root',
-                group: 'adm',
-                permissions: '0640',
-                size: 512,
+              children: {
+                'syslog': {
+                  type: 'file',
+                  name: 'syslog',
+                  content: `[2024-01-15 09:00:00] System startup
+[2024-01-15 10:23:45] SSH connection from 192.168.1.50
+[2024-01-15 10:24:12] User login successful: admin
+[2024-01-15 10:25:30] File access: /home/admin/data/config.ini
+[2024-01-15 10:26:15] VPN connection detected
+[2024-01-15 10:27:00] System running normally`,
+                  metadata: {
+                    ...DEFAULT_FILE_METADATA,
+                    owner: 'syslog',
+                    group: 'adm',
+                    permissions: '0640',
+                    size: 325,
+                    modified: now,
+                  },
+                },
+                'auth.log': {
+                  type: 'file',
+                  name: 'auth.log',
+                  content: `[2024-01-15 10:23:45] sshd: Accepted password for admin from 192.168.1.50
+[2024-01-15 10:24:12] sshd: session opened for user admin
+[2024-01-15 10:30:00] sshd: session closed for user admin`,
+                  metadata: {
+                    ...DEFAULT_FILE_METADATA,
+                    owner: 'root',
+                    group: 'adm',
+                    permissions: '0640',
+                    size: 198,
+                    modified: now,
+                  },
+                },
               },
             },
           },
         },
-      },
-    },
-    '/etc': {
-      type: 'directory',
-      name: 'etc',
-      metadata: {
-        permissions: '0755',
-        owner: 'root',
-        group: 'root',
-      },
-      children: {
-        'passwd': {
-          type: 'file',
-          name: 'passwd',
-          content: `root:x:0:0:root:/root:/bin/bash
+        'etc': {
+          type: 'directory',
+          name: 'etc',
+          metadata: {
+            permissions: '0755',
+            owner: 'root',
+            group: 'root',
+            modified: now,
+          },
+          children: {
+            'passwd': {
+              type: 'file',
+              name: 'passwd',
+              content: `root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 admin:x:1000:1000:Administrator:/home/admin:/bin/bash
 www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin`,
-          metadata: {
-            ...DEFAULT_FILE_METADATA,
-            owner: 'root',
-            group: 'root',
-            permissions: '0644',
-            size: 156,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'root',
+                group: 'root',
+                permissions: '0644',
+                size: 156,
+                modified: now,
+              },
+            },
+            'hostname': {
+              type: 'file',
+              name: 'hostname',
+              content: `server-01`,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'root',
+                group: 'root',
+                permissions: '0644',
+                size: 9,
+                modified: now,
+              },
+            },
           },
         },
-        'hostname': {
-          type: 'file',
-          name: 'hostname',
-          content: `server-01`,
+        'bin': {
+          type: 'directory',
+          name: 'bin',
           metadata: {
-            ...DEFAULT_FILE_METADATA,
+            permissions: '0755',
             owner: 'root',
             group: 'root',
-            permissions: '0644',
-            size: 9,
+            modified: now,
+          },
+          children: {
+            'bash': {
+              type: 'file',
+              name: 'bash',
+              content: '#!/bin/bash\n# Bash shell executable',
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'root',
+                group: 'root',
+                permissions: '0755',
+                size: 28,
+                executable: true,
+                modified: now,
+              },
+            },
+            'ls': {
+              type: 'file',
+              name: 'ls',
+              content: '#!/bin/bash\n# List directory contents',
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'root',
+                group: 'root',
+                permissions: '0755',
+                size: 32,
+                executable: true,
+                modified: now,
+              },
+            },
           },
         },
-      },
-    },
-    '/tmp': {
-      type: 'directory',
-      name: 'tmp',
-      metadata: {
-        permissions: '1777',
-        owner: 'root',
-        group: 'root',
-      },
-      children: {},
-    },
-    '/root': {
-      type: 'directory',
-      name: 'root',
-      metadata: {
-        permissions: '0700',
-        owner: 'root',
-        group: 'root',
-      },
-      children: {
-        '.bash_history': {
-          type: 'file',
-          name: '.bash_history',
-          content: `whoami
+        'usr': {
+          type: 'directory',
+          name: 'usr',
+          metadata: {
+            permissions: '0755',
+            owner: 'root',
+            group: 'root',
+            modified: now,
+          },
+          children: {
+            'bin': {
+              type: 'directory',
+              name: 'bin',
+              metadata: {
+                permissions: '0755',
+                owner: 'root',
+                group: 'root',
+                modified: now,
+              },
+              children: {},
+            },
+            'sbin': {
+              type: 'directory',
+              name: 'sbin',
+              metadata: {
+                permissions: '0755',
+                owner: 'root',
+                group: 'root',
+                modified: now,
+              },
+              children: {},
+            },
+          },
+        },
+        'tmp': {
+          type: 'directory',
+          name: 'tmp',
+          metadata: {
+            permissions: '1777',
+            owner: 'root',
+            group: 'root',
+            modified: now,
+          },
+          children: {},
+        },
+        'root': {
+          type: 'directory',
+          name: 'root',
+          metadata: {
+            permissions: '0700',
+            owner: 'root',
+            group: 'root',
+            modified: now,
+          },
+          children: {
+            '.bash_history': {
+              type: 'file',
+              name: '.bash_history',
+              content: `whoami
 hostname
 ifconfig
 exit`,
-          metadata: {
-            ...DEFAULT_FILE_METADATA,
-            owner: 'root',
-            group: 'root',
-            permissions: '0600',
-            size: 32,
+              metadata: {
+                ...DEFAULT_FILE_METADATA,
+                owner: 'root',
+                group: 'root',
+                permissions: '0600',
+                size: 32,
+                modified: now,
+              },
+            },
           },
         },
       },
@@ -303,4 +410,3 @@ export const server01Host: Host = {
   isOnline: true,
   baseLatency: 10, // 10ms base latency for ping
 };
-

@@ -128,15 +128,16 @@ export const dataExtractionMissionModule: MissionModule = {
       },
       {
         id: 'task-8',
-        description: 'Delete access logs with Log Shredder',
+        description: getTaskDescription('n00b-02', 'Delete access logs with Log Shredder'),
         type: 'command',
-        objective: 'Use Log Shredder to delete /home/logs/access.log',
-        hints: [
-          'Use "shred /home/logs/access.log" to delete the log file',
+        objective: getTaskObjective('n00b-02', 'Use Log Shredder to delete /var/log/auth.log to cover your tracks'),
+        hints: getTaskHints('n00b-02', [
+          'Use "shred /var/log/auth.log" to delete the authentication log file',
           'This covers your tracks after the extraction',
           'Make sure you purchased Log Shredder first',
-        ],
-        solution: 'shred',
+          'The auth.log file is in /var/log/ directory',
+        ]),
+        solution: 'shred /var/log/auth.log',
         reward: 60,
       },
       {
@@ -153,7 +154,7 @@ export const dataExtractionMissionModule: MissionModule = {
       },
     ],
     prerequisites: ['n00b-01'],
-    unlocks: [],
+    // unlocks: [] - Removed: Dynamic ordering system handles next mission automatically
     reward: 400,
   },
 

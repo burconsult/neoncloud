@@ -72,8 +72,9 @@ Each component plays a crucial role in data transmission.`,
 /**
  * Get a directory node from the file system by path
  * Handles:
- * - Local file system: /home/neoncloud-user
- * - Server file systems: /, /home, /home/<username>, /var, /etc, /tmp, etc.
+ * - Local file system: /home/neoncloud-user (with nested structure)
+ * - Server file systems: Proper Linux tree with / as root, all directories nested under it
+ *   Structure: / -> {home, var, bin, usr, etc, tmp, root} -> {subdirectories...}
  */
 export function getDirectoryByPath(fileSystem: FileSystem, path: string): Directory | null {
   // Normalize path
@@ -135,23 +136,17 @@ export function getDirectoryByPath(fileSystem: FileSystem, path: string): Direct
 
   // Navigate through path parts
   // For local: skip 'home' and 'neoncloud-user' (indices 0 and 1), start at index 2
-  // For server: start from index 0 (parts are relative to / or /home)
-  const startIndex = rootKey === '/home/neoncloud-user' ? 2 : (rootKey === '/' ? 0 : 1);
+  // For server with / root: start from index 0 (parts are relative to /)
+  const startIndex = rootKey === '/home/neoncloud-user' ? 2 : 0;
 
   for (let i = startIndex; i < parts.length; i++) {
     const part = parts[i];
     if (!part) continue;
     
     // Check if current directory has the child
+    // With proper Linux tree structure, everything is nested under /
+    // So we just navigate through children
     if (!current.children || !current.children[part]) {
-      // For server file systems with root, also check if it's a top-level directory
-      if (rootKey === '/' && i === 0 && fileSystem[`/${part}`]) {
-        const node = fileSystem[`/${part}`];
-        if (node.type === 'directory') {
-          current = node;
-          continue;
-        }
-      }
       return null;
     }
     

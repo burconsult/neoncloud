@@ -85,11 +85,25 @@ npm run build
 - **Code Reviews**: Quality assurance
 - **Documentation**: Living documentation approach
 
+## 👤 Author
+
+**burconsult**
+
+- X (Twitter): [@burconsult](https://x.com/burconsult)
+- GitHub: [@burconsult](https://github.com/burconsult)
+
 ## 📄 License
 
 [To be determined]
 
 ## 🤝 Contributing
 
-[Contributing guidelines to be added]
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+For more information, see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## 🔗 Links
+
+- **Live Demo**: [neoncloud-two.vercel.app](https://neoncloud-two.vercel.app)
+- **GitHub Repository**: [github.com/burconsult/neoncloud](https://github.com/burconsult/neoncloud)
 

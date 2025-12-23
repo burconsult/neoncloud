@@ -54,7 +54,7 @@ n00b-01 / First Hack: Server-01 Penetration Test (Script Kiddie)
   
 n00b-02 / Data Extraction: Server-02 Database Access (Script Kiddie)
   ├─ prerequisites: ['n00b-01']
-  ├─ unlocks: []
+  ├─ unlocks: [] (Dynamic ordering handles next mission)
   ├─ category: script-kiddie
   ├─ requiredSoftware: ['vpn-basic', 'password-cracker-basic', 'log-shredder']
   ├─ expectedCompletionTime: 180 (3 minutes)
@@ -68,11 +68,30 @@ n00b-02 / Data Extraction: Server-02 Database Access (Script Kiddie)
       ├─ task-7: Extract financial-report.txt
       ├─ task-8: Delete access logs with Log Shredder
       └─ task-9: Disconnect from server-02
+
+n00b-03 / Network Investigation: Server-01 Analysis (Script Kiddie)
+  ├─ prerequisites: ['n00b-02']
+  ├─ unlocks: [] (Dynamic ordering handles next mission)
+  ├─ category: script-kiddie
+  ├─ requiredSoftware: ['vpn-basic', 'password-cracker-basic'] (should already be owned)
+  ├─ expectedCompletionTime: 720 (12 minutes)
+  └─ tasks:
+      ├─ task-1: Read the investigation email
+      ├─ task-2: Connect to VPN
+      ├─ task-3: Ping the target server
+      ├─ task-4: Trace network path to server
+      ├─ task-5: Resolve DNS for target domain
+      ├─ task-6: Connect to server-01
+      ├─ task-7: Verify current directory (pwd)
+      ├─ task-8: Navigate to /etc directory
+      ├─ task-9: List files in /etc
+      ├─ task-10: Read hostname file
+      └─ task-11: Disconnect from server
 ```
 
 ## Mission Chain (Complete Path)
 
-1. **welcome-00** → 2. **tutorial-01** → 3. **network-01** → 4. **network-02** → 5. **network-03** → 6. **n00b-01** → 7. **n00b-02**
+1. **welcome-00** → 2. **tutorial-01** → 3. **network-01** → 4. **network-02** → 5. **network-03** → 6. **n00b-01** → 7. **n00b-02** → 8. **n00b-03** → 9. **h4x0r-01**
 
 ## Mission Files
 
@@ -86,6 +105,8 @@ All missions are defined in `src/game/missions/modules/` following the naming co
 - `01_05_dns_exploration.ts` → `network-03`
 - `02_01_first_hack.ts` → `n00b-01`
 - `02_02_data_extraction.ts` → `n00b-02`
+- `02_03_network_investigation.ts` → `n00b-03`
+- `03_01_advanced_penetration.ts` → `h4x0r-01`
 
 ## Registration
 
@@ -93,16 +114,20 @@ All missions are registered in `src/game/missions/missionLoader.ts` in the `load
 
 ## Notes
 
-- Each mission must have matching `prerequisites` and `unlocks` to maintain the chain
-- When a mission completes, the auto-loading system looks for missions whose prerequisites are met
+- **Dynamic Mission Ordering**: The system automatically determines next missions based on category and mission number. No need to manually update `unlocks` arrays.
+- Each mission must have correct `prerequisites` to maintain the chain
+- When a mission completes, the auto-loading system uses dynamic ordering to find the next mission
 - The first mission (welcome-00) has no prerequisites and should auto-start when the game begins
 - Mission categories are used for UI grouping and player rank progression
+- When the last mission is completed, an end screen is shown
 
 ## Adding New Missions
 
-1. Create a new file following the naming convention
-2. Define the mission module with correct `prerequisites` and `unlocks`
-3. Register it in `missionLoader.ts`
-4. Update this file with the new mission information
-5. Ensure the mission chain remains intact
+1. Create a new file following the naming convention: `{category_number}_{mission_number}_{mission_name}.ts`
+   - Category numbers: Training=01, Script Kiddie=02, Cyber Warrior=03, Digital Ninja=04
+   - Mission numbers: Sequential within category (01, 02, 03, etc.)
+2. Define the mission module with correct `prerequisites` (no need for `unlocks` - handled automatically)
+3. Register it in `missionLoader.ts` in the appropriate category section
+4. Update this file (MISSION_TREE.md) with the new mission information
+5. The dynamic ordering system will automatically place it in the correct position
 

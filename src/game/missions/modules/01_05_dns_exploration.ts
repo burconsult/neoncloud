@@ -57,7 +57,7 @@ export const dnsExplorationMissionModule: MissionModule = {
       },
     ],
     prerequisites: ['network-02'],
-    unlocks: ['n00b-01'],
+    // unlocks: ['n00b-01'] - Removed: Dynamic ordering system handles next mission automatically
     reward: 200,
   },
 

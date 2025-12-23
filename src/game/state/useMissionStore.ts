@@ -8,6 +8,7 @@ import { initializeMission, finalizeMission } from '../missions/missionLoader';
 import { useGameTimeStore } from '../time/useGameTimeStore';
 import { qualifiesForSpeedBonus } from '../time/missionTimer';
 import { createLogger } from '../../utils/logger';
+import { eventBus } from '../events/eventBus';
 
 const logger = createLogger('MissionStore');
 
@@ -197,40 +198,36 @@ export const useMissionStore = create<MissionState>()(
         );
       }
       
-      // Auto-load next mission if available
-      const allMissions = getAllMissions();
+      // Finalize current mission (completion emails, cleanup, etc.)
+      await finalizeMission(missionId);
       
-      // Find the next mission that should be unlocked
-      // A mission is unlocked if:
-      // 1. It has prerequisites AND all prerequisites are completed
-      // 2. The mission itself is not yet completed
-      const nextMission = allMissions.find((mission: Mission) => {
-        // Skip missions that are already completed
-        if (completedMissions.includes(mission.id)) {
-          return false;
-        }
-        
-        // Check if this mission has prerequisites
-        if (mission.prerequisites && mission.prerequisites.length > 0) {
-          // All prerequisites must be met
-          const allPrereqsMet = mission.prerequisites.every(prereq => 
-            completedMissions.includes(prereq)
-          );
-          return allPrereqsMet;
-        }
-        
-        // Missions without prerequisites are not auto-loaded (they must be manually started)
-        return false;
+      // Emit mission completed event BEFORE checking for next mission
+      // This ensures App.tsx can check for end screen immediately
+      eventBus.emit({
+        type: 'mission:completed',
+        missionId,
+        timestamp: Date.now(),
       });
       
-      if (nextMission) {
-        logger.debug(`Auto-loading next mission: ${nextMission.id} after completing ${missionId}`);
-        
-        // Finalize current mission (completion emails, cleanup, etc.)
-        await finalizeMission(missionId);
+      // Use dynamic mission ordering to find next mission
+      const { getNextMission, isLastMission } = await import('../missions/missionOrdering');
+      
+      // Check if this is the last mission
+      if (isLastMission(missionId)) {
+        logger.info(`Last mission completed: ${missionId}`);
+        // Clear current mission - end screen will be shown by App.tsx
+        set({ currentMission: null });
+        return;
+      }
+      
+      // Get the next mission using dynamic ordering
+      const nextMissionModule = getNextMission(missionId);
+      
+      if (nextMissionModule) {
+        logger.debug(`Auto-loading next mission: ${nextMissionModule.missionId} after completing ${missionId}`);
         
         // Start the next mission automatically
-        await get().startMission(nextMission.id);
+        await get().startMission(nextMissionModule.missionId);
       } else {
         logger.debug(`No next mission found after completing ${missionId}`);
         // No more missions, clear current mission

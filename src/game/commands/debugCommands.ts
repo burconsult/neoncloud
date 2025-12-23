@@ -79,6 +79,8 @@ export const testMissionCommand: Command = {
           '  • network-03 - DNS and Domain Resolution',
           '  • n00b-01 - First Hack: Server-01 Penetration Test',
           '  • n00b-02 - Data Extraction: Server-02 Database Access',
+          '  • n00b-03 - Network Investigation: Server-01 Analysis',
+          '  • h4x0r-01 - Advanced Penetration: Multi-Server Operation',
         ],
         success: false,
         error: 'Mission not found',
@@ -142,10 +144,42 @@ export const testMissionCommand: Command = {
       };
     }
 
-    // Optionally give the player some currency if needed for testing
+    // Give the player enough currency for testing based on mission requirements
     const currencyStore = useCurrencyStore.getState();
-    if (currencyStore.balance < 1000) {
-      currencyStore.earn(1000, 'Debug: Test funds', 'bonus');
+    const missionModule = missionRegistry.get(missionId);
+    
+    // Calculate required funds based on mission's required software
+    let requiredFunds = 0;
+    if (missionModule?.requiredSoftware) {
+      // Get software prices from tool loader
+      const { getAllSoftwareFromTools } = await import('../tools/toolLoader');
+      
+      const allSoftware = getAllSoftwareFromTools();
+      const requiredSoftware = missionModule.requiredSoftware;
+      
+      // Check which required software the player doesn't own
+      const missingSoftware = requiredSoftware.filter(softwareId => 
+        !inventoryStore.ownsSoftware(softwareId)
+      );
+      
+      // Calculate total cost of missing software
+      missingSoftware.forEach(softwareId => {
+        const software = allSoftware.find(s => s.id === softwareId);
+        if (software) {
+          requiredFunds += software.price || 0;
+        }
+      });
+    }
+    
+    // Give enough funds: required funds + 500 buffer for other expenses
+    // Minimum 2000 NC for advanced missions (h4x0r, l33t), 1000 NC for basic missions
+    const minFunds = missionId.startsWith('h4x0r') || missionId.startsWith('l33t') ? 2000 : 1000;
+    const targetFunds = Math.max(requiredFunds + 500, minFunds);
+    
+    if (currencyStore.balance < targetFunds) {
+      const amountToAdd = targetFunds - currencyStore.balance;
+      currencyStore.earn(amountToAdd, `Debug: Test funds for ${missionId}`, 'bonus');
+      console.log(`[TestMission] Granted ${amountToAdd} NC (total: ${targetFunds} NC) for testing ${missionId}`);
     }
 
     return {

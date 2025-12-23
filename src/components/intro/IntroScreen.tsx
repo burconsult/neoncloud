@@ -189,6 +189,28 @@ export function IntroScreen({ onStartNewGame, onContinueGame }: IntroScreenProps
             Your game progress is automatically saved to your browser's local storage.
             Use the "save" command in-game to export your progress to a file.
           </p>
+          <div className="intro-credits">
+            <p className="credits-text">
+              Created by{' '}
+              <a 
+                href="https://x.com/burconsult" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="credits-link"
+              >
+                @burconsult
+              </a>
+              {' • '}
+              <a 
+                href="https://github.com/burconsult/neoncloud" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="credits-link"
+              >
+                View on GitHub
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

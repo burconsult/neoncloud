@@ -57,7 +57,7 @@ export const terminalNavigationMissionModule: MissionModule = {
       },
     ],
     prerequisites: ['welcome-00'],
-    unlocks: ['network-01'],
+    // unlocks: ['network-01'] - Removed: Dynamic ordering system handles next mission automatically
     reward: 50,
   },
 

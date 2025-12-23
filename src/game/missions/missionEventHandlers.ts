@@ -3,27 +3,233 @@
  * 
  * Handles mission task completion based on game events.
  * This decouples missions from commands - missions react to events instead.
+ * Uses graph queries for context instead of hardcoding mission-specific logic.
  */
 
 import { eventBus, CommandExecutedEvent, FileReadEvent, ServerConnectedEvent, ServerDisconnectedEvent, ToolUsedEvent, EmailReadEvent } from '../events/eventBus';
 import { useMissionStore } from '../state/useMissionStore';
 import { useFileSystemStore } from '../state/useFileSystemStore';
 import { createCommandRegistry } from '../commands/commandRegistry';
-import { getMissionTargetHosts } from '../world/graph/WorldGraphQueries';
+import { getMissionTargetHosts, getEmailsByMission } from '../world/graph/WorldGraphQueries';
+import { missionRegistry } from './MissionModule';
+import { resolveFilePath } from '../filesystem/fileSystem';
 
 /**
- * Task matcher interface
- * Defines how to match events to mission tasks
+ * Parse a solution string into command and arguments
  */
-export interface TaskMatcher {
-  missionId: string;
-  taskId: string;
-  match: (event: any) => boolean;
+function parseSolution(solution: string): { command: string; args: string[] } {
+  const parts = solution.toLowerCase().trim().split(/\s+/);
+  return {
+    command: parts[0] || '',
+    args: parts.slice(1),
+  };
+}
+
+/**
+ * Graph-based task validation helper
+ * Uses the world graph to validate task completion conditions
+ */
+function validateTaskCompletion(
+  missionId: string,
+  taskSolution: string,
+  eventContext: {
+    serverId?: string | null;
+    filePath?: string;
+    filename?: string;
+    target?: string;
+    command?: string;
+    args?: string[];
+  }
+): boolean {
+  const missionModule = missionRegistry.get(missionId);
+  if (!missionModule) return false;
+  
+  const parsedSolution = parseSolution(taskSolution.toLowerCase().trim());
+  const targetHostIds = getMissionTargetHosts(missionId);
+  const fileSystemStore = useFileSystemStore.getState();
+  const activeServerId = fileSystemStore.activeServerId;
+  
+  // Validate server context for commands that require being on a specific host
+  const requiresServerContext = ['cat', 'pwd', 'cd', 'ls', 'shred'].includes(parsedSolution.command);
+  if (requiresServerContext && targetHostIds.length > 0) {
+    if (!activeServerId || !targetHostIds.includes(activeServerId)) {
+      return false; // Not on a mission target host
+    }
+  }
+  
+  // Validate specific server for connect/disconnect commands
+  if (parsedSolution.command === 'connect' || parsedSolution.command === 'ssh') {
+    if (parsedSolution.args.length > 0) {
+      let targetServer = parsedSolution.args[0];
+      if (targetServer.includes('@')) {
+        targetServer = targetServer.split('@')[1];
+      }
+      // Must match exact server from solution
+      return eventContext.serverId === targetServer;
+    }
+    // No specific server in solution - only valid if exactly one target host
+    return targetHostIds.length === 1 && eventContext.serverId === targetHostIds[0];
+  }
+  
+  if (parsedSolution.command === 'disconnect') {
+    if (parsedSolution.args.length > 0) {
+      // Must disconnect from specific server in solution
+      return eventContext.serverId === parsedSolution.args[0];
+    }
+    // No specific server - only valid if exactly one target host
+    return targetHostIds.length === 1 && eventContext.serverId === targetHostIds[0];
+  }
+  
+  // Validate file paths using graph and filesystem resolution
+  if (parsedSolution.command === 'shred' || parsedSolution.command === 'cat') {
+    if (!eventContext.target && !eventContext.filePath) return false;
+    
+    const fileSystem = fileSystemStore.getActiveFileSystem();
+    const currentPath = fileSystemStore.currentDirectory;
+    const solutionPath = parsedSolution.args.join(' ').toLowerCase();
+    
+    // Resolve event target/filePath to full path
+    const targetToResolve = eventContext.target || eventContext.filePath || '';
+    const resolvedEvent = resolveFilePath(fileSystem, currentPath, targetToResolve);
+    
+    if (!resolvedEvent.success || !resolvedEvent.fullPath || !resolvedEvent.filename) {
+      return false;
+    }
+    
+    const eventFullPath = (resolvedEvent.fullPath + '/' + resolvedEvent.filename).toLowerCase();
+    const solutionParts = solutionPath.split('/').filter(Boolean);
+    const solutionFilename = solutionParts.pop() || '';
+    const solutionDirPath = '/' + solutionParts.join('/');
+    
+    // Match paths
+    return eventFullPath === solutionPath ||
+           (resolvedEvent.filename.toLowerCase() === solutionFilename &&
+            resolvedEvent.fullPath.toLowerCase() === solutionDirPath) ||
+           eventFullPath.endsWith(solutionPath);
+  }
+  
+  return true; // Default: pass validation (specific matching handled elsewhere)
+}
+
+/**
+ * Check if command arguments match solution arguments
+ * Uses flexible matching: solution args must be present in command args
+ * Handles cases like CIDR notation (192.168.1.0/24) that might be split or combined
+ */
+function matchArguments(commandArgs: string[], solutionArgs: string[]): boolean {
+  if (solutionArgs.length === 0) {
+    return true; // No args required
+  }
+  
+  const commandArgsString = commandArgs.join(' ').toLowerCase();
+  const solutionArgsString = solutionArgs.join(' ').toLowerCase();
+  
+  // Exact match (handles both joined and split args)
+  if (commandArgsString === solutionArgsString) {
+    return true;
+  }
+  
+  // For multi-part solution args (like "192.168.1.0/24"), check if all parts are present
+  // This handles cases where args might be split differently
+  const solutionParts = solutionArgsString.split(/[\s\/]+/).filter(Boolean);
+  const commandParts = commandArgsString.split(/[\s\/]+/).filter(Boolean);
+  
+  // All solution parts must be present in command
+  return solutionParts.every(part => commandParts.includes(part) || commandArgsString.includes(part));
+}
+
+/**
+ * Check if a command matches a task solution using graph-driven logic
+ */
+function matchesCommandSolution(
+  command: string,
+  solution: string,
+  argsString: string,
+  args: string[],
+  taskId: string,
+  missionId: string,
+  commandSuccess?: boolean
+): boolean {
+  const parsedSolution = parseSolution(solution);
+  const solutionCommand = parsedSolution.command;
+  const solutionArgs = parsedSolution.args;
+  
+  // Get command registry for alias checking
+  const registry = createCommandRegistry();
+  
+  // For crack commands, rely on tool:used event instead of command:executed
+  if (solutionCommand === 'crack' && command === 'crack') {
+    return false; // Handled by tool:used event
+  }
+  
+  // For disconnect commands, rely on server:disconnected event
+  if (solutionCommand === 'disconnect' && command === 'disconnect') {
+    return false; // Handled by server:disconnected event
+  }
+  
+  // Check if command matches solution command (including aliases)
+  // The registry maps aliases to the same command object, so we can compare by name
+  const commandObj = registry.get(command);
+  const solutionCommandObj = registry.get(solutionCommand);
+  
+  if (!commandObj || !solutionCommandObj) {
+    return false;
+  }
+  
+  // Commands match if they resolve to the same command object (handles aliases automatically)
+  // Example: 'ssh' and 'connect' both resolve to connectCommand, so commandObj.name === solutionCommandObj.name
+  const commandsMatch = commandObj.name === solutionCommandObj.name;
+  
+  if (!commandsMatch) {
+    return false;
+  }
+  
+  // If commandSuccess is provided, only match on success
+  if (commandSuccess !== undefined && !commandSuccess) {
+    return false;
+  }
+  
+  // Match arguments
+  if (!matchArguments(args, solutionArgs)) {
+    return false;
+  }
+  
+  // For commands that require being on a mission target host, check via graph
+  const requiresTargetHost = ['cat', 'pwd', 'cd', 'ls', 'shred'].includes(solutionCommand);
+  if (requiresTargetHost) {
+    const targetHostIds = getMissionTargetHosts(missionId);
+    const fileSystemStore = useFileSystemStore.getState();
+    const activeServerId = fileSystemStore.activeServerId;
+    
+    // If mission has target hosts, player must be on one of them
+    if (targetHostIds.length > 0 && !targetHostIds.includes(activeServerId || '')) {
+      return false;
+    }
+  }
+  
+  // For connect/ssh commands (and aliases), verify target server is a mission target
+  // Check if solution command is connect/ssh using registry (handles all aliases)
+  // Reuse solutionCommandObj already declared above
+  const connectCommandObj = registry.get('connect');
+  
+  if (solutionCommandObj && connectCommandObj && solutionCommandObj.name === connectCommandObj.name) {
+    const targetHostIds = getMissionTargetHosts(missionId);
+    // Extract server ID from args (e.g., "connect server-01" or "ssh server-01" -> "server-01")
+    // Handle user@server format: "ssh admin@server-01" -> "server-01"
+    let serverId = args[0];
+    if (serverId && serverId.includes('@')) {
+      serverId = serverId.split('@')[1];
+    }
+    if (serverId && targetHostIds.length > 0 && !targetHostIds.includes(serverId)) {
+      return false; // Connecting to wrong server
+    }
+  }
+  
+  return true;
 }
 
 /**
  * Register event handlers for mission task completion
- * This replaces the inline task completion checks in commands
  */
 export function registerMissionEventHandlers(): void {
   // Command executed handler
@@ -40,74 +246,76 @@ export function registerMissionEventHandlers(): void {
       // Skip if already completed
       if (missionStore.isTaskCompleted(currentMission.id, task.id)) return;
 
-      // Match command to task solution
+      // Match command to task solution using graph-driven logic
       const solution = task.solution.toLowerCase().trim();
       const command = event.command.toLowerCase();
       const args = event.args || [];
       const argsString = args.join(' ').toLowerCase();
 
-      // Check if command matches solution
-      // For crack commands, only complete if the command succeeded (tool:used event handles actual success)
-      // For other commands, only complete if the command succeeded
-      if (matchesCommandSolution(command, solution, argsString, task.id, currentMission.id, event.success)) {
+      if (matchesCommandSolution(command, solution, argsString, args, task.id, currentMission.id, event.success)) {
         missionStore.completeTask(currentMission.id, task.id);
       }
     });
   });
 
-  // File read handler
-  // Note: This handler currently doesn't run because cat command doesn't emit file:read events
-  // File reading tasks are handled via command:executed events instead
-  // However, we keep this for future use if we add file:read event emission
+  // File read handler (for cat command tasks)
   eventBus.on<FileReadEvent>('file:read', (event) => {
     const missionStore = useMissionStore.getState();
     const currentMission = missionStore.currentMission;
     
     if (!currentMission) return;
 
-    // Check for file-reading tasks - use exact filename matching to avoid false positives
+    // Check for file reading tasks
     currentMission.tasks.forEach((task) => {
       if (task.type !== 'command' || !task.solution) return;
       if (missionStore.isTaskCompleted(currentMission.id, task.id)) return;
 
       const solution = task.solution.toLowerCase().trim();
+      const parsedSolution = parseSolution(solution);
       
-      // Only check tasks that are specifically about reading files
-      if (solution.includes('cat') || solution.includes('read')) {
-        const fileSystemStore = useFileSystemStore.getState();
-        const activeServerId = fileSystemStore.activeServerId;
-        
-        // Get target hosts for this mission from world graph
-        const targetHostIds = getMissionTargetHosts(currentMission.id);
-        
-        // For n00b-01 task-8: reading secret.txt on mission target host
-        if (currentMission.id === 'n00b-01' && task.id === 'task-8') {
-          // Check if active server is a mission target and filename matches
-          if (targetHostIds.includes(activeServerId || '') && event.filename === 'secret.txt') {
-            // Verify the path contains /home/admin/data or /data to ensure it's the correct file location
-            if (event.filePath.includes('/home/admin/data') || event.filePath.includes('/data')) {
-              missionStore.completeTask(currentMission.id, task.id);
-            }
-          }
-        }
-        // For n00b-02 task-6: reading customer-data.txt on mission target host
-        if (currentMission.id === 'n00b-02' && task.id === 'task-6') {
-          if (targetHostIds.includes(activeServerId || '') && event.filename === 'customer-data.txt') {
-            // Verify path contains /home/admin/database/customers or /database/customers
-            if (event.filePath.includes('/home/admin/database/customers') || event.filePath.includes('/database/customers')) {
-              missionStore.completeTask(currentMission.id, task.id);
-            }
-          }
-        }
-        // For n00b-02 task-7: reading financial-report.txt on mission target host
-        if (currentMission.id === 'n00b-02' && task.id === 'task-7') {
-          if (targetHostIds.includes(activeServerId || '') && event.filename === 'financial-report.txt') {
-            // Verify path contains /home/admin/database/reports or /database/reports
-            if (event.filePath.includes('/home/admin/database/reports') || event.filePath.includes('/database/reports')) {
-              missionStore.completeTask(currentMission.id, task.id);
-            }
-          }
-        }
+      // Only handle cat commands
+      if (parsedSolution.command !== 'cat') return;
+      
+      // Get target hosts from graph
+      const targetHostIds = getMissionTargetHosts(currentMission.id);
+      const fileSystemStore = useFileSystemStore.getState();
+      const activeServerId = fileSystemStore.activeServerId;
+      
+      // Must be on a mission target host
+      if (targetHostIds.length > 0 && !targetHostIds.includes(activeServerId || '')) {
+        return;
+      }
+      
+      // Check if filename or filePath matches solution args
+      // Solution can be: "cat README.txt" or "cat /home/admin/database/README.txt"
+      // Note: event.filePath is the directory path, event.filename is the filename
+      // e.g., solution: "cat /home/admin/database/README.txt" 
+      //       event: filePath="/home/admin/database", filename="README.txt"
+      const solutionArgs = parsedSolution.args.join(' ').toLowerCase();
+      const eventFilename = event.filename?.toLowerCase() || '';
+      const eventFilePath = event.filePath?.toLowerCase() || '';
+      
+      // Extract filename from solution (last part of path)
+      const solutionFilename = solutionArgs.split('/').pop() || solutionArgs;
+      
+      // Extract directory path from solution (everything except filename)
+      const solutionPathParts = solutionArgs.split('/').filter(Boolean);
+      solutionPathParts.pop(); // Remove filename
+      const solutionDirPath = '/' + solutionPathParts.join('/');
+      
+      // Match if:
+      // 1. Filename matches exactly (e.g., solution: "cat README.txt", event: filename="README.txt")
+      // 2. Filename matches AND directory path matches (e.g., solution: "cat /home/admin/database/README.txt", 
+      //    event: filePath="/home/admin/database", filename="README.txt")
+      // 3. Full path constructed from event matches solution (e.g., event: filePath="/home/admin/database", 
+      //    filename="README.txt" -> "/home/admin/database/readme.txt" matches solution)
+      const filenameMatches = eventFilename === solutionFilename;
+      const dirPathMatches = eventFilePath === solutionDirPath;
+      const fullPathMatches = eventFilePath && eventFilename && 
+                              (eventFilePath + '/' + eventFilename) === solutionArgs;
+      
+      if (filenameMatches && (solutionArgs === solutionFilename || dirPathMatches || fullPathMatches)) {
+        missionStore.completeTask(currentMission.id, task.id);
       }
     });
   });
@@ -119,80 +327,87 @@ export function registerMissionEventHandlers(): void {
     
     if (!currentMission) return;
 
+    // Get target hosts from graph
+    const targetHostIds = getMissionTargetHosts(currentMission.id);
+    
     // Check for server connection tasks
     currentMission.tasks.forEach((task) => {
       if (task.type !== 'command' || !task.solution) return;
       if (missionStore.isTaskCompleted(currentMission.id, task.id)) return;
 
-      // Check if this task is about connecting to a specific server
-      // Use exact matching to prevent 'disconnect' from matching (which contains 'connect' as substring)
       const solution = task.solution.toLowerCase().trim();
+      const parsedSolution = parseSolution(solution);
       
-      // Only match connect/ssh solutions, not disconnect
-      const isConnectOrSSHSolution = (
-        solution === 'connect' || 
-        solution === 'ssh' ||
-        (solution.startsWith('connect ') && !solution.startsWith('disconnect ')) ||
-        solution.startsWith('ssh ')
-      );
+      // Check if solution command is connect/ssh (or any alias) using registry
+      const registry = createCommandRegistry();
+      const solutionCommandObj = registry.get(parsedSolution.command);
+      const connectCommandObj = registry.get('connect');
       
-      if (isConnectOrSSHSolution) {
-        // Get target hosts for this mission from world graph
-        const targetHostIds = getMissionTargetHosts(currentMission.id);
-        
-        // For n00b-01 task-7: connect to mission target host
-        if (currentMission.id === 'n00b-01' && task.id === 'task-7') {
-          if (targetHostIds.includes(event.serverId)) {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+      // Only handle connect/ssh commands (including aliases like 'ssh', 'remote', 'rdp' if added)
+      if (!solutionCommandObj || !connectCommandObj || solutionCommandObj.name !== connectCommandObj.name) {
+        return;
+      }
+      
+      // Check if connected server matches solution args
+      // IMPORTANT: Only complete if solution specifies this exact server
+      const solutionArgs = parsedSolution.args;
+      if (solutionArgs.length > 0) {
+        // Extract server ID from solution args (handle user@server format)
+        let targetServer = solutionArgs[0];
+        if (targetServer.includes('@')) {
+          targetServer = targetServer.split('@')[1];
         }
-        // For n00b-02 task-5: connect to mission target host
-        if (currentMission.id === 'n00b-02' && task.id === 'task-5') {
-          if (targetHostIds.includes(event.serverId)) {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+        // Match ONLY if connected server matches solution server exactly
+        // This prevents completing server-01 task when connecting to server-02
+        if (event.serverId === targetServer) {
+          missionStore.completeTask(currentMission.id, task.id);
+        }
+      } else {
+        // No specific server in solution, any mission target host works
+        // But only if there's exactly one target host (to avoid ambiguity)
+        if (targetHostIds.length === 1 && targetHostIds.includes(event.serverId)) {
+          missionStore.completeTask(currentMission.id, task.id);
         }
       }
     });
   });
 
   // Server disconnected handler
-  // This handler is responsible for completing disconnect tasks
-  // It fires when a server:disconnected event is emitted, which happens ONLY in disconnectCommand
-  // IMPORTANT: This event should NEVER fire when connecting to a server
   eventBus.on<ServerDisconnectedEvent>('server:disconnected', (event) => {
     const missionStore = useMissionStore.getState();
     const currentMission = missionStore.currentMission;
     
     if (!currentMission) return;
 
-    // Check for disconnect tasks - these should be completed based on the server:disconnected event
-    // Only complete tasks where the solution is exactly 'disconnect' (not 'connect' or 'ssh')
+    // Get target hosts from graph
+    const targetHostIds = getMissionTargetHosts(currentMission.id);
+    
+    // Check for disconnect tasks
     currentMission.tasks.forEach((task) => {
       if (task.type !== 'command' || !task.solution) return;
       if (missionStore.isTaskCompleted(currentMission.id, task.id)) return;
 
       const solution = task.solution.toLowerCase().trim();
       
-      // CRITICAL: Only match if solution is exactly 'disconnect'
-      // This prevents false positives from 'connect' commands
+      // Only handle disconnect tasks
       if (solution !== 'disconnect') {
-        return; // Skip tasks that aren't disconnect tasks
+        return;
       }
       
-      // Match disconnect tasks based on mission and task ID
-      // Get target hosts for this mission from world graph
-      const targetHostIds = getMissionTargetHosts(currentMission.id);
+      // Check if solution specifies a particular server to disconnect from
+      const parsedSolution = parseSolution(solution);
+      const solutionArgs = parsedSolution.args;
       
-      // For n00b-01 task-9: disconnect from mission target host
-      if (currentMission.id === 'n00b-01' && task.id === 'task-9') {
-        if (targetHostIds.includes(event.serverId)) {
+      if (solutionArgs.length > 0) {
+        // Solution specifies a server (e.g., "disconnect server-01")
+        // Only complete if disconnecting from that specific server
+        if (event.serverId === solutionArgs[0]) {
           missionStore.completeTask(currentMission.id, task.id);
         }
-      }
-      // For n00b-02 task-9: disconnect from mission target host
-      if (currentMission.id === 'n00b-02' && task.id === 'task-9') {
-        if (targetHostIds.includes(event.serverId)) {
+      } else {
+        // No specific server in solution, any mission target host works
+        // But only if there's exactly one target host (to avoid ambiguity)
+        if (targetHostIds.length === 1 && targetHostIds.includes(event.serverId)) {
           missionStore.completeTask(currentMission.id, task.id);
         }
       }
@@ -212,44 +427,89 @@ export function registerMissionEventHandlers(): void {
       if (missionStore.isTaskCompleted(currentMission.id, task.id)) return;
 
       const solution = task.solution.toLowerCase().trim();
+      const parsedSolution = parseSolution(solution);
       
-      // Check if task is about using a specific tool
-      if (solution.includes('crack')) {
-        // For n00b-01 task-5: crack encrypted file
-        if (currentMission.id === 'n00b-01' && task.id === 'task-5') {
-          if (event.toolId === 'crack' && event.target?.includes('credentials.enc')) {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+      // Handle crack commands
+      // The command is 'crack' but the toolId is 'password-cracker'
+      if (parsedSolution.command === 'crack' && event.toolId === 'password-cracker') {
+        // Check if target matches solution args
+        const solutionArgs = parsedSolution.args.join(' ');
+        if (event.target && solutionArgs && event.target.includes(solutionArgs)) {
+          missionStore.completeTask(currentMission.id, task.id);
         }
-        // For n00b-02 task-4: decrypt server-02 credentials file
-        if (currentMission.id === 'n00b-02' && task.id === 'task-4') {
-          if (event.toolId === 'crack' && event.target?.includes('server-02-credentials.enc')) {
+      }
+      
+      // Handle VPN connections
+      if (parsedSolution.command === 'vpn' && event.toolId === 'vpn') {
+        missionStore.completeTask(currentMission.id, task.id);
+      }
+      
+      // Handle scan commands
+      if (parsedSolution.command === 'scan' && event.toolId === 'network-scanner') {
+        // Check if target IP range matches solution args
+        const solutionArgs = parsedSolution.args.join(' ').toLowerCase();
+        if (event.target && solutionArgs) {
+          // Match CIDR notation (e.g., "192.168.1.0/24")
+          // Also handle variations like "192.168.1.0/24" vs "192.168.1.0/24"
+          const normalizedTarget = event.target.toLowerCase().trim();
+          const normalizedSolution = solutionArgs.trim();
+          
+          // Exact match or target contains solution (handles partial matches)
+          if (normalizedTarget === normalizedSolution || normalizedTarget.includes(normalizedSolution)) {
             missionStore.completeTask(currentMission.id, task.id);
           }
         }
       }
       
-      if (solution.includes('vpn')) {
-        // For n00b-01 task-3: connect to VPN
-        if (currentMission.id === 'n00b-01' && task.id === 'task-3') {
-          if (event.toolId === 'vpn') {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+      // Handle shred commands
+      if (parsedSolution.command === 'shred' && event.toolId === 'log-shredder') {
+        // Get target hosts from graph
+        const targetHostIds = getMissionTargetHosts(currentMission.id);
+        const fileSystemStore = useFileSystemStore.getState();
+        const activeServerId = fileSystemStore.activeServerId;
+        
+        // Must be on a mission target host
+        if (targetHostIds.length > 0 && !targetHostIds.includes(activeServerId || '')) {
+          return;
         }
-        // For n00b-02 task-2: connect to VPN
-        if (currentMission.id === 'n00b-02' && task.id === 'task-2') {
-          if (event.toolId === 'vpn') {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+        
+        // Resolve paths to handle both absolute and relative paths
+        // Solution can be: "shred /var/log/auth.log" or "shred auth.log"
+        // Event.target is the original argument (could be relative)
+        const solutionArgs = parsedSolution.args.join(' ');
+        const solutionPath = solutionArgs.toLowerCase();
+        
+        if (!event.target) return;
+        
+        // Get current file system and path
+        const fileSystem = fileSystemStore.getActiveFileSystem();
+        const currentPath = fileSystemStore.currentDirectory;
+        
+        // Resolve the event target to a full path (handles relative paths)
+        const resolvedEvent = resolveFilePath(fileSystem, currentPath, event.target);
+        if (!resolvedEvent.success || !resolvedEvent.fullPath || !resolvedEvent.filename) {
+          return;
         }
-      }
-      
-      if (solution.includes('shred')) {
-        // For n00b-02 task-8: shred access logs
-        if (currentMission.id === 'n00b-02' && task.id === 'task-8') {
-          if (event.toolId === 'log-shredder' && event.target?.includes('access.log')) {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+        
+        // Construct full path from resolved result
+        const eventFullPath = (resolvedEvent.fullPath + '/' + resolvedEvent.filename).toLowerCase();
+        
+        // Extract filename and directory from solution
+        const solutionParts = solutionPath.split('/').filter(Boolean);
+        const solutionFilename = solutionParts.pop() || '';
+        const solutionDirPath = '/' + solutionParts.join('/');
+        
+        // Match if:
+        // 1. Full paths match exactly
+        // 2. Filename matches and directory path matches
+        // 3. Event path ends with solution path (handles relative vs absolute)
+        const fullPathMatches = eventFullPath === solutionPath;
+        const filenameAndDirMatch = resolvedEvent.filename.toLowerCase() === solutionFilename &&
+                                     resolvedEvent.fullPath.toLowerCase() === solutionDirPath;
+        const pathEndsWithSolution = eventFullPath.endsWith(solutionPath);
+        
+        if (fullPathMatches || filenameAndDirMatch || pathEndsWithSolution) {
+          missionStore.completeTask(currentMission.id, task.id);
         }
       }
     });
@@ -262,6 +522,9 @@ export function registerMissionEventHandlers(): void {
     
     if (!currentMission) return;
 
+    // Get emails for this mission from graph
+    const missionEmails = getEmailsByMission(currentMission.id);
+    
     // Check for email reading tasks
     currentMission.tasks.forEach((task) => {
       if (task.type !== 'command' || !task.solution) return;
@@ -269,185 +532,17 @@ export function registerMissionEventHandlers(): void {
 
       const solution = task.solution.toLowerCase().trim();
       
+      // Check if solution involves reading email
       if (solution.includes('mail read') || solution.includes('read email')) {
-        // For welcome-00 task-2: read welcome email (email-welcome-001)
-        if (currentMission.id === 'welcome-00' && task.id === 'welcome-task-2') {
-          if (event.emailId === 'email-welcome-001' || event.missionId === 'welcome-00') {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
-        }
-        // For n00b-01 task-1: read contract email (email-first-hack-001)
-        if (currentMission.id === 'n00b-01' && task.id === 'task-1') {
-          if (event.emailId === 'email-first-hack-001' || event.missionId === 'n00b-01') {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
-        }
-        // For n00b-02 task-1: read contract email (email-data-extraction-001)
-        if (currentMission.id === 'n00b-02' && task.id === 'task-1') {
-          if (event.emailId === 'email-data-extraction-001' || event.missionId === 'n00b-02') {
-            missionStore.completeTask(currentMission.id, task.id);
-          }
+        // Check if the read email belongs to this mission
+        const emailMatches = missionEmails.some(email => 
+          email.id === event.emailId || event.missionId === currentMission.id
+        );
+        
+        if (emailMatches) {
+          missionStore.completeTask(currentMission.id, task.id);
         }
       }
     });
   });
 }
-
-/**
- * Check if a command matches a task solution
- * Handles aliases, arguments, and special cases
- */
-function matchesCommandSolution(
-  command: string,
-  solution: string,
-  argsString: string,
-  taskId: string,
-  missionId: string,
-  commandSuccess?: boolean
-): boolean {
-  // For crack commands, rely on tool:used event instead of command:executed
-  // Don't match crack commands in command:executed handler - they should only complete via tool:used
-  if (solution === 'crack' && command === 'crack') {
-    // Crack tasks are handled by tool:used event handler, not command:executed
-    // This prevents false positives when crack command fails (e.g., tool not owned)
-    return false;
-  }
-  // Get command registry to check aliases
-  const registry = createCommandRegistry();
-  
-  // Special case: "cat" command - check if reading specific files
-  // MUST be checked BEFORE generic command matching to prevent false positives
-  // These tasks require reading specific files on specific servers
-  if (solution === 'cat' && command === 'cat') {
-    // Get target hosts for this mission from world graph
-    const targetHostIds = getMissionTargetHosts(missionId);
-    const fileSystemStore = useFileSystemStore.getState();
-    const activeServerId = fileSystemStore.activeServerId;
-    
-    // For n00b-01 task-8: must read secret.txt on mission target host
-    if (missionId === 'n00b-01' && taskId === 'task-8') {
-      // Check that user is on a mission target host and reading secret.txt
-      if (!targetHostIds.includes(activeServerId || '')) {
-        return false; // Not on a mission target server
-      }
-      // Check if the filename contains secret.txt (but not as part of another filename like credentials.enc)
-      // Allow paths like "/home/data/secret.txt" or "secret.txt" or "data/secret.txt"
-      const normalizedArgs = argsString.trim();
-      return normalizedArgs.includes('secret.txt') && !normalizedArgs.includes('credentials');
-    }
-    // For n00b-02 task-6: must read customer-data.txt on mission target host
-    if (missionId === 'n00b-02' && taskId === 'task-6') {
-      if (!targetHostIds.includes(activeServerId || '')) {
-        return false;
-      }
-      return argsString.includes('customer-data.txt');
-    }
-    // For n00b-02 task-7: must read financial-report.txt on mission target host
-    if (missionId === 'n00b-02' && taskId === 'task-7') {
-      if (!targetHostIds.includes(activeServerId || '')) {
-        return false;
-      }
-      return argsString.includes('financial-report.txt');
-    }
-    // For other cat tasks with generic 'cat' solution, don't auto-match
-    // They need to be handled explicitly above
-    return false;
-  }
-  
-  // Check if command matches solution directly
-  // But only if the command succeeded (if success status is provided)
-  if (command === solution) {
-    // If commandSuccess is explicitly provided, only match on success
-    if (commandSuccess !== undefined && !commandSuccess) {
-      return false;
-    }
-    return true;
-  }
-
-  // Check if command is an alias of solution
-  const solutionCommand = registry.get(solution);
-  if (solutionCommand) {
-    const aliases = solutionCommand.aliases || [];
-    if (aliases.includes(command) || solutionCommand.name === command) {
-      // If commandSuccess is explicitly provided, only match on success
-      if (commandSuccess !== undefined && !commandSuccess) {
-        return false;
-      }
-      // If solution has arguments, check them
-      if (solution.includes(' ')) {
-        const solutionArgs = solution.split(' ').slice(1).join(' ').toLowerCase();
-        return argsString.includes(solutionArgs) || solutionArgs.includes(argsString);
-      }
-      return true;
-    }
-  }
-
-  // Check if solution is a prefix of command (e.g., "mail read" matches "mail")
-  if (solution.includes(' ')) {
-    const solutionParts = solution.split(' ');
-    const solutionBase = solutionParts[0];
-    const solutionArgs = solutionParts.slice(1).join(' ').toLowerCase();
-    const fullSolutionCommand = `${solutionBase} ${solutionArgs}`.toLowerCase();
-    const fullCommandString = `${command} ${argsString}`.trim();
-    
-    // Check if command matches base
-    const baseCommand = solutionBase ? registry.get(solutionBase) : null;
-    if (baseCommand && (baseCommand.name === command || baseCommand.aliases?.includes(command))) {
-      // For nslookup commands, require exact match to prevent partial matches
-      // e.g., "nslookup example.com A" should NOT match "nslookup example.com"
-      if (command === 'nslookup' && missionId === 'network-03') {
-        // For DNS tasks, require exact argument match
-        // task-1: "nslookup example.com a" - args must be exactly "example.com a"
-        // task-2: "nslookup example.com mx" - args must be exactly "example.com mx"
-        // task-3: "nslookup example.com" - args must be exactly "example.com"
-        return argsString.trim() === solutionArgs.trim();
-      }
-      
-      // For other commands, use flexible matching (but still check exact match first)
-      if (fullCommandString === fullSolutionCommand) {
-        return true;
-      }
-      // Fallback to includes check for commands that might have additional args
-      return argsString.includes(solutionArgs) || solutionArgs.includes(argsString);
-    }
-  }
-
-  // Special case: "mail" command with "read" subcommand
-  if (solution === 'mail read' && command === 'mail') {
-    return argsString.includes('read');
-  }
-
-  // Special case: "disconnect" command - MUST be checked BEFORE connect/ssh to prevent substring matching
-  // For disconnect tasks, we ONLY rely on the server:disconnected event handler
-  // Never complete disconnect tasks via command:executed events to prevent false positives
-  if (solution === 'disconnect') {
-    // Disconnect tasks should only complete via server:disconnected event
-    // This prevents false positives when running connect/ssh commands
-    return false;
-  }
-
-  // Special case: "connect" or "ssh" commands
-  // Note: Server connection tasks are primarily handled by server:connected event handler
-  // Use exact or prefix matching to prevent 'disconnect' from matching (which contains 'connect' as substring)
-  // Match solutions like: "connect", "connect server-01", "ssh", "ssh server-01"
-  // But NOT: "disconnect" (which contains "connect" but should not match)
-  const isConnectOrSSHSolution = (
-    solution === 'connect' || 
-    solution === 'ssh' ||
-    (solution.startsWith('connect ') && !solution.startsWith('disconnect ')) ||
-    solution.startsWith('ssh ')
-  );
-  const isConnectOrSSHCommand = (command === 'connect' || command === 'ssh');
-  
-  if (isConnectOrSSHSolution && isConnectOrSSHCommand) {
-    // Only match if command succeeded
-    if (commandSuccess !== undefined && !commandSuccess) {
-      return false;
-    }
-    // Allow connection commands to match (actual server connection is tracked by server:connected event)
-    return true;
-  }
-
-  return false;
-}
-

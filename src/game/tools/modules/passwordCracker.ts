@@ -222,7 +222,8 @@ export const passwordCrackerToolModule: ToolModule = {
                     }
                     
                     // Emit tool used event
-                    emitToolUsed('crack', target, true);
+                    // Use the toolId from the module, not 'crack'
+                    emitToolUsed('password-cracker', target, true);
                     
                     // Add completion message to terminal
                     const terminalStore = useTerminalStore.getState();

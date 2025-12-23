@@ -242,7 +242,8 @@ export const networkScannerToolModule: ToolModule = {
           scanResult = scanIPRange(ipRange);
           
           // Emit tool used event after scan completes
-          emitToolUsed('scan', ipRange, true);
+          // Use the toolId from the module, not 'scan'
+          emitToolUsed('network-scanner', ipRange, true);
         },
         (progress, remaining) => {
           // Progress callback (optional)

@@ -57,7 +57,7 @@ export const networkConnectivityMissionModule: MissionModule = {
       },
     ],
     prerequisites: ['tutorial-01'],
-    unlocks: ['network-02'],
+    // unlocks: ['network-02'] - Removed: Dynamic ordering system handles next mission automatically
     reward: 100,
   },
 

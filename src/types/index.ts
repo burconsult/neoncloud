@@ -65,7 +65,7 @@ export interface Mission {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tasks: Task[];
   prerequisites: string[];
-  unlocks: string[];
+  unlocks?: string[]; // Optional: Dynamic ordering system handles next missions automatically
   reward?: number;
 }
 

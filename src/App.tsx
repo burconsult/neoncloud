@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TerminalContainer } from './components/terminal/TerminalContainer';
 import { IntroScreen } from './components/intro/IntroScreen';
+import { EndScreen } from './components/end/EndScreen';
 import { CurrencyDisplay } from './components/currency/CurrencyDisplay';
 import { Icon } from './components/ui/Icon';
 import { useConnectionStore } from './game/state/useConnectionStore';
@@ -16,11 +17,14 @@ import { useMissionPanelStore } from './game/state/useMissionPanelStore';
 import { useEmailStore } from './game/state/useEmailStore';
 import { registerMissionEventHandlers } from './game/missions/missionEventHandlers';
 import { loadMissionModules } from './game/missions/missionLoader';
+import { isLastMission } from './game/missions/missionOrdering';
+import { getAllMissions } from './game/missions/missionLoader';
 import { eventBus } from './game/events/eventBus';
 import './App.css';
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
+  const [showEndScreen, setShowEndScreen] = useState(false);
 
   // Initialize game systems on mount
   useEffect(() => {
@@ -33,13 +37,50 @@ function App() {
     // Listen for logout events to return to intro screen
     const unsubscribeLogout = eventBus.on('user:logout', () => {
       setGameStarted(false);
+      setShowEndScreen(false);
+    });
+    
+    // Check if game is already completed (all missions done)
+    const checkGameCompletion = (completedMissionId?: string) => {
+      if (!gameStarted) return;
+      
+      const missionStore = useMissionStore.getState();
+      const completedMissions = missionStore.completedMissions || [];
+      const allMissions = getAllMissions();
+      
+      // Check if all missions are completed
+      if (allMissions.length > 0 && completedMissions.length >= allMissions.length) {
+        // Find the last mission to verify
+        const lastMission = allMissions.find(m => isLastMission(m.id));
+        if (lastMission && completedMissions.includes(lastMission.id)) {
+          setShowEndScreen(true);
+          return;
+        }
+      }
+      
+      // Also check if the just-completed mission is the last one
+      if (completedMissionId && isLastMission(completedMissionId)) {
+        setShowEndScreen(true);
+      }
+    };
+    
+    // Check on mount and when missions change
+    checkGameCompletion();
+    const unsubscribeMissionComplete = eventBus.on('mission:completed', ({ missionId }) => {
+      // Use a longer delay to ensure state is fully updated
+      setTimeout(() => {
+        checkGameCompletion(missionId);
+        // Also check again after a bit more time to catch any race conditions
+        setTimeout(() => checkGameCompletion(missionId), 200);
+      }, 100);
     });
     
     // Cleanup on unmount
     return () => {
       unsubscribeLogout();
+      unsubscribeMissionComplete();
     };
-  }, []);
+  }, [gameStarted]);
 
   const handleStartNewGame = (username: string) => {
     // Reset all game state
@@ -80,10 +121,36 @@ function App() {
     // Just continue with existing state from localStorage
     // The stores will auto-load from localStorage via their persist middleware
     setGameStarted(true);
+    
+    // Check if game is already completed (all missions done)
+    const missionStore = useMissionStore.getState();
+    const completedMissions = missionStore.completedMissions || [];
+    const allMissions = getAllMissions();
+    
+    if (allMissions.length > 0 && completedMissions.length >= allMissions.length) {
+      const lastMission = allMissions.find(m => isLastMission(m.id));
+      if (lastMission && completedMissions.includes(lastMission.id)) {
+        setShowEndScreen(true);
+      }
+    }
+  };
+
+  const handleEndScreenRestart = () => {
+    handleStartNewGame(useAuthStore.getState().username || 'player');
+    setShowEndScreen(false);
+  };
+
+  const handleEndScreenContinue = () => {
+    setShowEndScreen(false);
+    // Continue exploring the completed game
   };
 
   if (!gameStarted) {
     return <IntroScreen onStartNewGame={handleStartNewGame} onContinueGame={handleContinueGame} />;
+  }
+
+  if (showEndScreen) {
+    return <EndScreen onRestart={handleEndScreenRestart} onContinue={handleEndScreenContinue} />;
   }
 
   return (
@@ -106,6 +173,28 @@ function App() {
       <main className="app-main">
         <TerminalContainer />
       </main>
+      <footer className="app-footer">
+        <p className="footer-credits">
+          Created by{' '}
+          <a 
+            href="https://x.com/burconsult" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            @burconsult
+          </a>
+          {' • '}
+          <a 
+            href="https://github.com/burconsult/neoncloud" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer-link"
+          >
+            View on GitHub
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
