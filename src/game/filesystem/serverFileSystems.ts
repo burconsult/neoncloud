@@ -21,10 +21,10 @@ import { FileSystem } from '@/types';
  * @param serverId Server identifier (host ID)
  * @returns FileSystem for the server, or null if not found
  */
-export function getServerFileSystem(serverId: string): FileSystem | null {
+export async function getServerFileSystem(serverId: string): Promise<FileSystem | null> {
   try {
     // Import world registry dynamically to avoid circular dependencies
-    const { worldRegistry } = require('../world/registry/WorldRegistry');
+    const { worldRegistry } = await import('../world/registry/WorldRegistry');
     const host = worldRegistry.getHost(serverId);
     
     if (host && host.fileSystemFactory) {
@@ -36,6 +36,27 @@ export function getServerFileSystem(serverId: string): FileSystem | null {
   } catch (error) {
     // If world registry not available (shouldn't happen in normal flow)
     console.error(`Error loading file system from world registry for ${serverId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Synchronous version for backward compatibility
+ * Note: This will only work if world registry is already loaded
+ */
+export function getServerFileSystemSync(serverId: string): FileSystem | null {
+  try {
+    // Try to access world registry synchronously (only works if already imported)
+    const { worldRegistry } = require('../world/registry/WorldRegistry');
+    const host = worldRegistry.getHost(serverId);
+    
+    if (host && host.fileSystemFactory) {
+      return host.fileSystemFactory();
+    }
+    
+    return null;
+  } catch (error) {
+    // If require fails, return null (will be handled by async version)
     return null;
   }
 }

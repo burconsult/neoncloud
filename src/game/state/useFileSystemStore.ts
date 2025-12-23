@@ -43,15 +43,16 @@ export const useFileSystemStore = create<FileSystemState>()(
         } else {
           // Switch to server file system
           // Always start in /home directory so players need to navigate to find files
-          const serverFileSystem = getServerFileSystem(serverId);
-          if (serverFileSystem) {
-            const homeDirectory = getServerHomeDirectory(serverId, username);
-            set({
-              fileSystem: serverFileSystem,
-              currentDirectory: homeDirectory,
-              activeServerId: serverId,
-            });
-          }
+          getServerFileSystem(serverId).then(serverFileSystem => {
+            if (serverFileSystem) {
+              const homeDirectory = getServerHomeDirectory(serverId, username);
+              set({
+                fileSystem: serverFileSystem,
+                currentDirectory: homeDirectory,
+                activeServerId: serverId,
+              });
+            }
+          });
         }
       },
 
@@ -74,12 +75,23 @@ export const useFileSystemStore = create<FileSystemState>()(
         
         // Restore file system based on active server
         if (state.activeServerId) {
-          const serverFileSystem = getServerFileSystem(state.activeServerId);
-          if (serverFileSystem) {
-            state.fileSystem = serverFileSystem;
-            const homeDirectory = getServerHomeDirectory(state.activeServerId);
-            state.currentDirectory = homeDirectory;
-          }
+          // Use sync version for rehydration (world registry should be loaded by now)
+          import('../filesystem/serverFileSystems').then(({ getServerFileSystemSync }) => {
+            const serverFileSystem = getServerFileSystemSync(state.activeServerId!);
+            if (serverFileSystem) {
+              state.fileSystem = serverFileSystem;
+              const homeDirectory = getServerHomeDirectory(state.activeServerId!);
+              state.currentDirectory = homeDirectory;
+            } else {
+              // Fallback to default if sync fails
+              state.fileSystem = createDefaultFileSystem();
+              state.currentDirectory = '/home/neoncloud-user';
+            }
+          }).catch(() => {
+            // If import fails, use default
+            state.fileSystem = createDefaultFileSystem();
+            state.currentDirectory = '/home/neoncloud-user';
+          });
         } else {
           state.fileSystem = createDefaultFileSystem();
           state.currentDirectory = '/home/neoncloud-user';

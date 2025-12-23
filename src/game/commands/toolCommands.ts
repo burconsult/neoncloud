@@ -267,9 +267,9 @@ export const connectCommand: Command = {
       };
     }
     
-    // Verify server file system exists (fallback to legacy system)
+    // Verify server file system exists (query through world graph)
     const fileSystemStore = useFileSystemStore.getState();
-    const serverFileSystem = getServerFileSystem(server);
+    const serverFileSystem = await getServerFileSystem(server);
     
     if (!serverFileSystem) {
       return {
