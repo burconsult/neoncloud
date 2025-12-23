@@ -1,5 +1,6 @@
 import { Email } from '@/types/email';
 import { getHostDisplayName, getOrganizationDisplayName } from '../world/graph/WorldGraphQueries';
+import { worldRegistry } from '../world/registry/WorldRegistry';
 
 /**
  * Email templates for the game
@@ -71,7 +72,6 @@ export function createFirstHackEmail(): Email {
   const targetOrgName = getOrganizationDisplayName('megacorp');
   
   // Get host IP from registry for dynamic content
-  const { worldRegistry } = await import('../world/registry/WorldRegistry');
   const host = worldRegistry.getHost('server-01');
   const hostIP = host?.ipAddress || '192.168.1.100';
   
