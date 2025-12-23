@@ -27,10 +27,10 @@ function createAdvancedPenetrationEmail(): Email {
   const ipRange = org?.ipRange || '192.168.1.0/24';
   
   // Get both servers for dynamic content
-  const server01Name = getHostDisplayName('server-01');
-  const server02Name = getHostDisplayName('server-02');
-  const server01 = worldRegistry.getHost('server-01');
-  const server02 = worldRegistry.getHost('server-02');
+  const server01Name = getHostDisplayName('megacorp-server-01');
+  const server02Name = getHostDisplayName('megacorp-database-01');
+  const server01 = worldRegistry.getHost('megacorp-server-01');
+  const server02 = worldRegistry.getHost('megacorp-database-01');
   
   return {
     id: 'email-advanced-penetration-001',
@@ -40,7 +40,7 @@ function createAdvancedPenetrationEmail(): Email {
     worldGraph: {
       fromContactId: 'agent-smith',
       fromOrganizationId: 'neoncloud',
-      relatedHostIds: ['server-01', 'server-02'],
+      relatedHostIds: ['megacorp-server-01', 'megacorp-database-01'],
       relatedOrganizationIds: ['megacorp'],
     },
     body: `Agent,
@@ -76,8 +76,8 @@ This is a high-priority contract requiring advanced skills and premium tools. Yo
 
 **Encrypted Credentials:**
 Two encrypted credential files are attached:
-- server-01-advanced-credentials.enc (for ${server01Name})
-- server-02-advanced-credentials.enc (for ${server02Name})
+- megacorp-server-01-advanced-credentials.enc (for ${server01Name})
+- megacorp-database-01-advanced-credentials.enc (for ${server02Name})
 
 Extract both passwords, then access the servers. The Advanced Password Cracker will significantly speed up this process.
 
@@ -89,13 +89,13 @@ contracts@neoncloud-ops.org`,
     read: false,
     attachments: [
       {
-        filename: 'server-01-advanced-credentials.enc',
+        filename: 'megacorp-server-01-advanced-credentials.enc',
         encrypted: true,
         encryptedContent: `K9#mP7$vL3@qR8%tN2&wY6!jU4*oZ1^eB9(cF5)dH7+eI3-fJ8_gN2=hO5{kP7}qR4|sT9~uW2`,
         password: 'cyberpass123',
       },
       {
-        filename: 'server-02-advanced-credentials.enc',
+        filename: 'megacorp-database-01-advanced-credentials.enc',
         encrypted: true,
         encryptedContent: `M3#nP9$wK5@rL7%tM2&xY8!jV4*oZ6^eB2(cF9)dH5+eI7-fJ3_gN8=hO4{kP2}qR7|sT5~uW9`,
         password: 'cyberpass456',
@@ -111,7 +111,7 @@ export const advancedPenetrationMissionModule: MissionModule = {
   // World Graph Relationships
   worldGraph: {
     clientOrganizationId: 'neoncloud',
-    targetHostIds: ['server-01', 'server-02'], // Multiple targets
+    targetHostIds: ['megacorp-server-01', 'megacorp-database-01'], // Multiple targets
     targetOrganizationIds: ['megacorp'],
     contactId: 'agent-smith',
   },
@@ -211,26 +211,26 @@ export const advancedPenetrationMissionModule: MissionModule = {
         id: 'task-7',
         description: getTaskDescription('h4x0r-01', 'Decrypt server-01 credentials'),
         type: 'command',
-        objective: getTaskObjective('h4x0r-01', 'Crack server-01-advanced-credentials.enc using Advanced Password Cracker'),
+        objective: getTaskObjective('h4x0r-01', 'Crack megacorp-server-01-advanced-credentials.enc using Advanced Password Cracker'),
         hints: getTaskHints('h4x0r-01', [
           'The file is in your Documents folder',
-          'Use "crack server-01-advanced-credentials.enc"',
+          'Use "crack megacorp-server-01-advanced-credentials.enc"',
           'Advanced cracker will decrypt it much faster',
         ]),
-        solution: 'crack server-01-advanced-credentials.enc',
+        solution: 'crack megacorp-server-01-advanced-credentials.enc',
         reward: 50,
       },
       {
         id: 'task-8',
         description: getTaskDescription('h4x0r-01', 'Decrypt server-02 credentials'),
         type: 'command',
-        objective: getTaskObjective('h4x0r-01', 'Crack server-02-advanced-credentials.enc using Advanced Password Cracker'),
+        objective: getTaskObjective('h4x0r-01', 'Crack megacorp-database-01-advanced-credentials.enc using Advanced Password Cracker'),
         hints: getTaskHints('h4x0r-01', [
           'The file is in your Documents folder',
-          'Use "crack server-02-advanced-credentials.enc"',
+          'Use "crack megacorp-database-01-advanced-credentials.enc"',
           'Advanced cracker handles multiple files efficiently',
         ]),
-        solution: 'crack server-02-advanced-credentials.enc',
+        solution: 'crack megacorp-database-01-advanced-credentials.enc',
         reward: 50,
       },
       {
@@ -239,10 +239,11 @@ export const advancedPenetrationMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('h4x0r-01', 'Connect to server-01 using extracted credentials'),
         hints: getTaskHints('h4x0r-01', [
-          'Type "connect server-01" after decrypting credentials',
+          'Type "ssh server-01" or "ssh admin@server-01" after decrypting credentials',
           'Credentials are automatically loaded',
+          'You can also use "connect server-01" as an alias',
         ]),
-        solution: 'connect server-01',
+        solution: 'ssh server-01',
         reward: 40,
       },
       {
@@ -275,9 +276,10 @@ export const advancedPenetrationMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('h4x0r-01', 'Disconnect from server-01'),
         hints: getTaskHints('h4x0r-01', [
-          'Use "disconnect" to disconnect from server-01',
+          'Use "logout" to disconnect from server-01',
+          'You can also use "disconnect" as an alias',
         ]),
-        solution: 'disconnect',
+        solution: 'logout',
         reward: 25,
       },
       {
@@ -286,10 +288,11 @@ export const advancedPenetrationMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('h4x0r-01', 'Connect to server-02 using extracted credentials'),
         hints: getTaskHints('h4x0r-01', [
-          'Type "connect server-02" after decrypting credentials',
+          'Type "ssh server-02" or "ssh admin@server-02" after decrypting credentials',
           'You need to disconnect from server-01 first',
+          'You can also use "connect server-02" as an alias',
         ]),
-        solution: 'connect server-02',
+        solution: 'ssh megacorp-database-01',
         reward: 40,
       },
       {
@@ -322,10 +325,11 @@ export const advancedPenetrationMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('h4x0r-01', 'Disconnect from server-02'),
         hints: getTaskHints('h4x0r-01', [
-          'Use "disconnect" to disconnect from server-02',
+          'Use "logout" to disconnect from server-02',
+          'You can also use "disconnect" as an alias',
           'Always disconnect after completing objectives',
         ]),
-        solution: 'disconnect',
+        solution: 'logout',
         reward: 25,
       },
     ],

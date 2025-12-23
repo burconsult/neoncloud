@@ -18,6 +18,7 @@ export interface Software {
   category: SoftwareCategory;
   rarity: SoftwareRarity;
   price: number;
+  storageSize?: number; // Storage space required (in units). Defaults to 10 if not specified
   icon?: string;
   requirements?: {
     completedMissions?: string[];
@@ -25,7 +26,7 @@ export interface Software {
   };
   effects?: {
     unlockCommands?: string[];
-    increaseStorage?: number;
+    increaseStorage?: number; // For storage upgrades - increases capacity
     reduceLatency?: number;
     enableFeatures?: string[];
   };
@@ -43,44 +44,51 @@ export interface Software {
 export const SOFTWARE_CATALOG: Software[] = [
   // Storage Upgrades (not tools, just inventory upgrades)
 
-  // Storage
+  // Storage Upgrades (these take no storage space themselves, they increase capacity)
+  // All values are in TB (Terabytes)
   {
     id: 'storage-upgrade-1',
     name: 'Storage Upgrade I',
-    description: 'Increase your storage capacity by 50%.',
+    description: 'Add 0.5 TB to your storage capacity.',
     category: 'storage',
     rarity: 'common',
     price: 150,
+    storageSize: 0, // Upgrades don't take storage space
+    requirements: {
+      completedMissions: ['tutorial-01'],
+    },
     effects: {
-      increaseStorage: 50,
+      increaseStorage: 50, // 0.5 TB (internal: 50 units = 0.5 TB)
     },
   },
   {
     id: 'storage-upgrade-2',
     name: 'Storage Upgrade II',
-    description: 'Double your storage capacity.',
+    description: 'Add 1 TB to your storage capacity.',
     category: 'storage',
     rarity: 'uncommon',
     price: 400,
+    storageSize: 0, // Upgrades don't take storage space
     requirements: {
-      completedMissions: ['tutorial-01'],
+      completedMissions: ['network-01'],
     },
     effects: {
-      increaseStorage: 100,
+      increaseStorage: 100, // 1 TB (internal: 100 units = 1 TB)
     },
   },
   {
     id: 'storage-upgrade-3',
     name: 'Storage Upgrade III',
-    description: 'Massive storage expansion. 5x your original capacity.',
+    description: 'Add 5 TB to your storage capacity.',
     category: 'storage',
     rarity: 'rare',
     price: 1200,
+    storageSize: 0, // Upgrades don't take storage space
     requirements: {
-      completedMissions: ['network-01'],
+      completedMissions: ['n00b-01'],
     },
     effects: {
-      increaseStorage: 500,
+      increaseStorage: 500, // 5 TB (internal: 500 units = 5 TB)
     },
   },
 

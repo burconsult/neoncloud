@@ -33,10 +33,8 @@ Archived outdated/completed documentation to `docs/archive/`:
 ## Current Documentation Structure
 
 ### Active Documentation
-- `docs/WORLD_GRAPH_ARCHITECTURE.md` - Current architecture
-- `docs/WORLD_GRAPH_COMPLETE_MAPPING.md` - Asset mapping
-- `docs/WORLD_GRAPH_USAGE_GUIDE.md` - Usage guide
-- `docs/WORLD_GRAPH_IMPLEMENTATION_STATUS.md` - Current status
+- `docs/WORLD_GRAPH.md` - Complete consolidated world graph documentation (architecture, usage, status, mapping)
+- `docs/WORLD_GRAPH_MINDMAP.md` - Visual representation of world graph
 - `docs/REFACTORING_COMPLETE.md` - Summary of completed work
 - `docs/MISSION_CREATION_GUIDE.md` - Active guide
 - `docs/architecture.md` - Main architecture doc

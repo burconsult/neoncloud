@@ -14,7 +14,7 @@ export const firstHackMissionModule: MissionModule = {
   // World Graph Relationships
   worldGraph: {
     clientOrganizationId: 'neoncloud', // Mission provided by NeonCloud
-    targetHostIds: ['server-01'], // Target host
+    targetHostIds: ['megacorp-server-01'], // Target host
     targetOrganizationIds: ['megacorp'], // Target organization
     contactId: 'agent-smith', // Contact who briefs the player
   },
@@ -46,16 +46,32 @@ export const firstHackMissionModule: MissionModule = {
         reward: 20,
       },
       {
+        id: 'task-1a',
+        description: getTaskDescription('n00b-01', 'Discover Megacorp IP address'),
+        type: 'command',
+        objective: getTaskObjective('n00b-01', 'Use ping or nslookup to discover megacorp.com IP address'),
+        hints: getTaskHints('n00b-01', [
+          'The email mentions megacorp.com - use your training tools to investigate',
+          'Try "ping megacorp.com" to discover the IP address',
+          'Or use "nslookup megacorp.com" to get DNS records',
+          'This will reveal the organization\'s public IP address',
+        ]),
+        solution: 'ping megacorp.com',
+        reward: 25,
+      },
+      {
         id: 'task-2',
         description: getTaskDescription('n00b-01', 'Scan the Megacorp network to discover hosts'),
         type: 'command',
-        objective: getTaskObjective('n00b-01', 'Use the Network Scanner to scan the Megacorp network (192.168.1.0/24) and discover active hosts'),
+        objective: getTaskObjective('n00b-01', 'Use the Network Scanner to scan the Megacorp network range and discover active hosts including server-01'),
         hints: getTaskHints('n00b-01', [
-          'The email mentions Megacorp network: 192.168.1.0/24',
-          'Use "scan 192.168.1.0/24" to scan the network range',
-          'This will discover server-01 and other active hosts',
+          'From the IP address you discovered, determine the network range',
+          'If the IP is 203.0.113.1, try scanning 203.0.113.0/24',
+          'Use "scan 203.0.113.0/24" to scan the network range',
+          'This will discover server-01 so you know what to connect to',
+          'The scan results will show server-01 with its IP address',
         ]),
-        solution: 'scan 192.168.1.0/24',
+        solution: 'scan 203.0.113.0/24',
         reward: 30,
       },
       {
@@ -115,11 +131,12 @@ export const firstHackMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('n00b-01', 'Connect to server-01 using the extracted credentials'),
         hints: getTaskHints('n00b-01', [
-          'Type "connect server-01" after decrypting the credentials',
+          'Type "ssh server-01" or "ssh admin@server-01" after decrypting the credentials',
           'Credentials are automatically loaded after decryption',
+          'You can also use "connect server-01" as an alias',
           'You need to be connected to VPN first',
         ]),
-        solution: 'connect server-01',
+        solution: 'ssh server-01',
         reward: 30,
       },
       {
@@ -140,10 +157,11 @@ export const firstHackMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('n00b-01', 'Disconnect from server-01 after completing the mission'),
         hints: getTaskHints('n00b-01', [
-          'Use "disconnect" or "connect disconnect" to disconnect',
+          'Use "logout" to disconnect from the server',
+          'You can also use "disconnect" as an alias',
           'You should always disconnect after completing your objectives',
         ]),
-        solution: 'disconnect',
+        solution: 'logout',
         reward: 20,
       },
     ],

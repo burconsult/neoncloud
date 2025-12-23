@@ -23,6 +23,7 @@ export const vpnToolModule: ToolModule = {
     category: 'network',
     rarity: 'common',
     price: 200,
+    storageSize: 12, // Takes 12 storage units (0.12 TB)
     requirements: {
       completedMissions: ['tutorial-01'],
     },
@@ -38,6 +39,7 @@ export const vpnToolModule: ToolModule = {
     category: 'network',
     rarity: 'uncommon',
     price: 500,
+    storageSize: 20, // Takes 20 storage units (0.20 TB - premium is larger)
     requirements: {
       completedMissions: ['network-01'],
     },

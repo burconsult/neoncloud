@@ -128,6 +128,7 @@ export const networkScannerToolModule: ToolModule = {
     category: 'network',
     rarity: 'common',
     price: 100, // Cheaper, given at start or very early
+    storageSize: 8, // Takes 8 storage units (0.08 TB - small, basic tool)
     requirements: {
       completedMissions: [], // Available from start
     },
@@ -143,6 +144,7 @@ export const networkScannerToolModule: ToolModule = {
     category: 'network',
     rarity: 'uncommon',
     price: 350,
+    storageSize: 24, // Takes 24 storage units (0.24 TB - premium version with more features)
     requirements: {
       completedMissions: ['network-01'],
     },
@@ -185,8 +187,8 @@ export const networkScannerToolModule: ToolModule = {
             'Usage: scan <ip-or-range>',
             '',
             'Examples:',
-            '  scan 192.168.1.100        # Scan single IP',
-            '  scan 192.168.1.0/24       # Scan entire subnet (limited to .1-.10 for gameplay)',
+            '  scan 203.0.113.100        # Scan single IP',
+            '  scan 203.0.113.0/24       # Scan entire subnet (limited to .1-.10 for gameplay)',
             '',
             '💡 Tip: Use CIDR notation (e.g., /24) to scan network ranges.',
             '   Mission briefings often provide network information to scan.',
@@ -214,8 +216,8 @@ export const networkScannerToolModule: ToolModule = {
             '',
             'Usage: scan <ip-or-range>',
             '  Examples:',
-            '    scan 192.168.1.100',
-            '    scan 192.168.1.0/24',
+            '    scan 203.0.113.100',
+            '    scan 203.0.113.0/24',
           ],
           success: false,
           error: 'Invalid IP range',

@@ -80,7 +80,7 @@ port=22
 protocol=ssh
 
 [network]
-ip=192.168.1.100
+ip=203.0.113.2
 subnet=255.255.255.0
 
 [security]
@@ -348,22 +348,22 @@ exit`,
 }
 
 export const server01Host: Host = {
-  id: 'server-01',
+  id: 'megacorp-server-01',
   name: 'server-01',
   displayName: 'Server-01',
   
   // Network Identity
-  ipAddress: '192.168.1.100',
-  domainName: 'server-01.megacorp.local',
+  ipAddress: '203.0.113.2', // Public IP address (TEST-NET-3 range, safe for examples)
+  domainName: 'server-01.megacorp.com',
   macAddress: '00:1B:44:11:3A:B7',
   
   // DNS Records
   dnsRecords: {
-    A: ['192.168.1.100'],
+    A: ['203.0.113.2'],
     AAAA: [],
     CNAME: [],
     MX: [],
-    TXT: ['v=spf1 include:_spf.megacorp.local'],
+    TXT: ['v=spf1 include:_spf.megacorp.com'],
   },
   
   // Organization Relationship
@@ -390,7 +390,7 @@ export const server01Host: Host = {
   },
   
   // File System - Defined directly in host entity
-  fileSystemId: 'server-01',
+  fileSystemId: 'megacorp-server-01',
   fileSystemFactory: createServer01FileSystem,
   
   // Network Topology

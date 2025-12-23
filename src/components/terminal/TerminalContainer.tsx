@@ -1,38 +1,50 @@
-import { useState } from 'react';
 import { TerminalWindow } from './TerminalWindow';
+import { Drawer, DrawerTabInfo } from '../drawer/Drawer';
 import { MissionPanel } from '../mission/MissionPanel';
 import { SoftwareStore } from '../store/SoftwareStore';
+import { InventoryPanel } from '../drawer/InventoryPanel';
+import { PlayerStatsPanel } from '../drawer/PlayerStatsPanel';
+import { NetworkTopologyPanel } from '../drawer/NetworkTopologyPanel';
 import './TerminalContainer.css';
 
 export function TerminalContainer() {
-  const [showStore, setShowStore] = useState(false);
+  const drawerTabs: DrawerTabInfo[] = [
+    {
+      id: 'missions',
+      label: 'Missions',
+      icon: 'book-open',
+      component: <MissionPanel />,
+    },
+    {
+      id: 'store',
+      label: 'Store',
+      icon: 'shopping-cart',
+      component: <SoftwareStore />,
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      icon: 'server',
+      component: <InventoryPanel />,
+    },
+    {
+      id: 'stats',
+      label: 'Stats',
+      icon: 'user',
+      component: <PlayerStatsPanel />,
+    },
+    {
+      id: 'network',
+      label: 'Network',
+      icon: 'network',
+      component: <NetworkTopologyPanel />,
+    },
+  ];
 
   return (
     <div className="terminal-container">
       <div className="terminal-sidebar">
-        {showStore ? (
-          <>
-            <button
-              className="store-toggle-button"
-              onClick={() => setShowStore(false)}
-              aria-label="Show missions"
-            >
-              ← Missions
-            </button>
-            <SoftwareStore />
-          </>
-        ) : (
-          <>
-            <button
-              className="store-toggle-button"
-              onClick={() => setShowStore(true)}
-              aria-label="Show store"
-            >
-              Store →
-            </button>
-            <MissionPanel />
-          </>
-        )}
+        <Drawer tabs={drawerTabs} defaultTab="missions" />
       </div>
       <div className="terminal-main">
         <TerminalWindow />

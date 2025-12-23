@@ -4,55 +4,75 @@ import { useFileSystemStore } from '../state/useFileSystemStore';
 import { emitServerDisconnected } from '../events/eventBus';
 
 /**
- * Disconnect command - Disconnect from VPN or remote server
+ * Logout command - Disconnect from remote server (SSH/RDP)
+ * Primary command: logout
+ * For VPN disconnection, use "vpn disconnect"
  */
 export const disconnectCommand: Command = {
-  name: 'disconnect',
-  aliases: ['dc', 'exit-server'],
-  description: 'Disconnect from VPN or remote server',
-  usage: 'disconnect',
+  name: 'logout',
+  aliases: ['disconnect', 'dc', 'exit-server', 'exit'],
+  description: 'Disconnect from remote server (SSH/RDP). Use "vpn disconnect" for VPN.',
+  usage: 'logout [server]',
   requiresUnlock: false,
-  execute: (_args: string[], _context?: GameContext): CommandResult => {
+  execute: (args: string[], _context?: GameContext): CommandResult => {
     const connectionStore = useConnectionStore.getState();
-    
-    const isVPNConnected = connectionStore.isVPNConnected();
     const currentServer = connectionStore.getCurrentRemoteServer();
     
-    if (!isVPNConnected && !currentServer) {
+    // If server specified in args, validate it matches current connection
+    if (args.length > 0 && args[0]) {
+      const requestedServer = args[0];
+      if (currentServer !== requestedServer) {
+          return {
+            output: [
+              `Error: Not connected to ${requestedServer}.`,
+              currentServer 
+                ? `Currently connected to ${currentServer}. Use "logout" to disconnect.`
+                : 'Not connected to any remote server.',
+              '',
+              'Usage: logout [server]',
+              '  logout          - Disconnect from current server',
+              '  logout server-01 - Disconnect from server-01 (if connected)',
+              '  disconnect      - Alias for logout',
+              '',
+              'For VPN: Use "vpn disconnect"',
+            ],
+            success: false,
+            error: 'Server mismatch',
+          };
+      }
+    }
+    
+    if (!currentServer) {
       return {
-        output: 'Not connected to VPN or any remote server.',
+        output: [
+          'Not connected to any remote server.',
+          '',
+          'Usage: logout [server]',
+          '  logout          - Disconnect from current server',
+          '  disconnect      - Alias for logout',
+          '',
+          'For VPN disconnection, use: vpn disconnect',
+        ],
         success: false,
         error: 'Not connected',
       };
     }
     
-    const messages: string[] = [];
+    // Disconnect from remote server
+    connectionStore.disconnectRemoteServer();
     
-    // Disconnect from remote server if connected
-    if (currentServer) {
-      connectionStore.disconnectRemoteServer();
-      
-      // Switch back to local file system
-      const fileSystemStore = useFileSystemStore.getState();
-      fileSystemStore.setActiveServer(null);
-      
-      messages.push(`Disconnected from ${currentServer}`);
-      messages.push('You are now back on your local system.');
-      
-      // Emit server disconnected event (mission handlers will check if this completes a task)
-      emitServerDisconnected(currentServer);
-    }
+    // Switch back to local file system
+    const fileSystemStore = useFileSystemStore.getState();
+    fileSystemStore.setActiveServer(null);
     
-    // Disconnect from VPN if connected
-    if (isVPNConnected) {
-      const vpnType = connectionStore.vpnType === 'premium' ? 'Premium' : 'Basic';
-      connectionStore.disconnectVPN();
-      messages.push(`Disconnected from ${vpnType} VPN`);
-      messages.push('Your IP address is now visible.');
-    }
+    // Emit server disconnected event (mission handlers will check if this completes a task)
+    emitServerDisconnected(currentServer);
     
     return {
-      output: messages,
+      output: [
+        `Disconnected from ${currentServer}`,
+        'You are now back on your local system.',
+      ],
       success: true,
     };
   },

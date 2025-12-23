@@ -36,6 +36,9 @@ import {
   List,
   Circle,
   Info,
+  ShoppingCart,
+  Package,
+  Wifi,
 } from 'lucide-react';
 
 /**
@@ -73,6 +76,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'terminal': Terminal,
   'code': Code,
   'server': Server,
+  'network': Network,
   
   // Status icons
   'success': CheckCircle2,
@@ -118,6 +122,12 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'eye': Eye,
   'eye-off': EyeOff,
   'circle': Circle,
+  'shopping-cart': ShoppingCart,
+  'cart': ShoppingCart,
+  'store': ShoppingCart,
+  'package': Package,
+  'box': Package,
+  'wifi': Wifi,
   'icon': HelpCircle, // Generic icon fallback
 };
 

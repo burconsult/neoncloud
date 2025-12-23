@@ -75,20 +75,9 @@ export const mailCommand: Command = {
           email.attachments.map(async (attachment) => {
             await addEmailAttachmentToFileSystem(fileSystem, documentsPath, attachment);
             
-            // If attachment contains password credentials, store them
-            if (attachment.password && attachment.filename.includes('credentials')) {
-              // Extract server ID from filename (e.g., server-01-credentials.enc -> server-01)
-              const serverIdMatch = attachment.filename.match(/(server-\d+)/);
-              if (serverIdMatch && serverIdMatch[1]) {
-                const serverId = serverIdMatch[1];
-                // Extract username from decrypted content or use default
-                const usernameMatch = attachment.decryptedContent?.match(/Username:\s*(\S+)/i);
-                const username = usernameMatch && usernameMatch[1] ? usernameMatch[1] : 'admin';
-                
-                const connectionStore = useConnectionStore.getState();
-                connectionStore.setServerCredentials(serverId, username, attachment.password);
-              }
-            }
+            // DO NOT store credentials here - credentials are ONLY set when the encrypted file is cracked
+            // The player must use the 'crack' command to decrypt the credential file first
+            // This ensures proper workflow: read email -> crack encrypted file -> credentials available -> SSH connection
           })
         ).catch(console.error);
       }

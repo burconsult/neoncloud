@@ -26,6 +26,7 @@ export const logShredderToolModule: ToolModule = {
     category: 'utility',
     rarity: 'uncommon',
     price: 450,
+    storageSize: 15, // Takes 15 storage units (0.15 TB)
     requirements: {
       completedMissions: ['n00b-01'],
     },

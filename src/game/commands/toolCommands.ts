@@ -17,14 +17,15 @@ import { applyDurationMultiplier } from '../settings/difficultyConfig';
 import { actionQueue } from '../time/actionQueue';
 
 /**
- * Connect to server command
- * Supports: connect server-01, ssh admin@server-01, ssh server-01
+ * SSH to server command
+ * Primary command: ssh
+ * Supports: ssh admin@server-01, ssh server-01, connect server-01 (alias)
  */
 export const connectCommand: Command = {
-  name: 'connect',
-  aliases: ['ssh', 'remote'],
-  description: 'Connect to or disconnect from a remote server',
-  usage: 'connect <server> | ssh [user@]server | disconnect',
+  name: 'ssh',
+  aliases: ['connect', 'remote'],
+  description: 'Connect to a remote server via SSH',
+  usage: 'ssh [user@]server',
   requiresUnlock: false,
   execute: async (args: string[]): Promise<CommandResult> => {
     const connectionStore = useConnectionStore.getState();
@@ -32,18 +33,17 @@ export const connectCommand: Command = {
     if (args.length === 0 || !args[0]) {
       return {
         output: [
-          'Usage: connect <server> | ssh [user@]server | disconnect',
+          'Usage: ssh [user@]server',
           '',
-          'Commands:',
-          '  connect <server>     - Connect to a remote server',
-          '  ssh [user@]server    - SSH to a remote server (alternative syntax)',
-          '  disconnect           - Disconnect from current server',
+          'Connect to a remote server via SSH.',
           '',
           'Examples:',
-          '  connect server-01',
           '  ssh admin@server-01',
           '  ssh server-01',
-          '  disconnect',
+          '  connect server-01    (alias)',
+          '',
+          'To disconnect from a server, use: logout',
+          'To connect/disconnect VPN, use: vpn connect | vpn disconnect',
           '',
           'You need to extract the password first by cracking encrypted credential files.',
         ],
@@ -52,46 +52,15 @@ export const connectCommand: Command = {
       };
     }
     
-    const subcommand = args[0]?.toLowerCase() || '';
-    
-    // Handle disconnect
-    if (subcommand === 'disconnect') {
-      const currentServer = connectionStore.getCurrentRemoteServer();
-      if (!currentServer) {
-        return {
-          output: 'Not connected to any remote server.',
-          success: false,
-          error: 'Not connected',
-        };
-      }
-      
-      connectionStore.disconnectRemoteServer();
-      
-      // Switch back to local file system
-      const fileSystemStore = useFileSystemStore.getState();
-      fileSystemStore.setActiveServer(null);
-      
-      // Emit server disconnected event (mission handlers will check if this completes a task)
-      emitServerDisconnected(currentServer);
-      
-      return {
-        output: [
-          `Disconnected from ${currentServer}`,
-          'You are now back on your local system.',
-        ],
-        success: true,
-      };
-    }
-    
     // Parse server and username from arguments
-    // Support: "connect server-01", "ssh admin@server-01", "ssh server-01"
+    // Support: "ssh admin@server-01", "ssh server-01", "connect server-01" (alias)
     let server: string;
     let requestedUsername: string | null = null;
     
     const target = args[0];
     if (!target) {
       return {
-        output: 'Missing server argument',
+        output: 'Missing server argument. Usage: ssh [user@]server',
         success: false,
         error: 'Missing argument',
       };
@@ -105,7 +74,7 @@ export const connectCommand: Command = {
         server = parts[1];
       } else {
         return {
-          output: 'Invalid format. Use: ssh user@server or connect server',
+          output: 'Invalid format. Use: ssh user@server',
           success: false,
           error: 'Invalid format',
         };
@@ -114,31 +83,38 @@ export const connectCommand: Command = {
       server = target;
     }
     
-    // Check if already connected to a different server
-    const currentServer = connectionStore.getCurrentRemoteServer();
-    if (currentServer && currentServer !== server) {
-      return {
-        output: [
-          `Already connected to ${currentServer}.`,
-          'Use "disconnect" first to disconnect, then connect to another server.',
-        ],
-        success: false,
-        error: 'Already connected',
-      };
-    }
+    // Resolve host ID early to handle both old and new formats
+    const { resolveHostId } = await import('../world/utils/hostIdUtils');
+    const resolvedServerId = resolveHostId(server);
     
-    if (currentServer === server) {
-      return {
-        output: `Already connected to ${server}. Use "disconnect" to disconnect.`,
-        success: false,
-        error: 'Already connected',
-      };
+    // Check if already connected to a different server (compare resolved IDs)
+    const currentServer = connectionStore.getCurrentRemoteServer();
+    if (currentServer) {
+      const resolvedCurrentServer = resolveHostId(currentServer);
+      if (resolvedCurrentServer !== resolvedServerId) {
+        return {
+          output: [
+            `Already connected to ${currentServer}.`,
+            'Use "disconnect" first to disconnect, then connect to another server.',
+          ],
+          success: false,
+          error: 'Already connected',
+        };
+      }
+      
+      if (resolvedCurrentServer === resolvedServerId) {
+        return {
+          output: `Already connected to ${server}. Use "disconnect" to disconnect.`,
+          success: false,
+          error: 'Already connected',
+        };
+      }
     }
     
     // Validate host exists in world registry FIRST
     const { worldRegistry } = await import('../world/registry/WorldRegistry');
     const { useDiscoveryStore } = await import('../world/discovery/DiscoveryStore');
-    const host = worldRegistry.getHost(server);
+    const host = worldRegistry.getHost(resolvedServerId);
     
     if (!host) {
       return {
@@ -167,9 +143,9 @@ export const connectCommand: Command = {
       };
     }
     
-    // Check if host has been discovered
+    // Check if host has been discovered (use resolved ID)
     const discoveryStore = useDiscoveryStore.getState();
-    if (!discoveryStore.isHostDiscovered(server)) {
+    if (!discoveryStore.isHostDiscovered(resolvedServerId)) {
       return {
         output: [
           `Connecting to ${server}...`,
@@ -198,29 +174,55 @@ export const connectCommand: Command = {
           ],
           success: false,
           error: 'Firewall protection',
-        };
+          };
       }
     }
     
-    // Check if we have credentials for this server
-    // First check mission-provided credentials (from cracked files), then fall back to host registry
-    let credentials = connectionStore.getServerCredentials(server);
+    // Check VPN requirement using mission system
+    const { useMissionStore } = await import('../state/useMissionStore');
+    const missionStore = useMissionStore.getState();
+    const currentMission = missionStore.currentMission;
     
-    // If no mission credentials, check host entity for default credentials
+    if (currentMission) {
+      // Check if current mission has a VPN connect task that should be completed first
+      const vpnTask = currentMission.tasks.find(t => {
+        if (t.type !== 'command' || !t.solution) return false;
+        const solution = t.solution.toLowerCase().trim();
+        return solution.startsWith('vpn connect');
+      });
+      
+      // If mission has a VPN task and it's not completed, require VPN connection
+      if (vpnTask && !missionStore.isTaskCompleted(currentMission.id, vpnTask.id)) {
+        if (!connectionStore.isVPNConnected()) {
+          return {
+            output: [
+              `Cannot connect to ${server} without VPN protection.`,
+              '',
+              'This mission requires connecting to VPN first for security.',
+              'Complete the VPN connection task before accessing remote servers.',
+              '',
+              'Use: vpn connect',
+            ],
+            success: false,
+            error: 'VPN required',
+          };
+        }
+      }
+    }
+    
+    // Check if we have credentials for this server (use resolved ID)
+    // Only accept credentials from cracked files (mission-provided), not host defaults
+    let credentials = connectionStore.getServerCredentials(resolvedServerId);
+    
+    // If no mission credentials, check if host has credentials that require cracking
     if (!credentials && host.credentials) {
-      // Host has credentials defined, but they may require cracking
       if (host.credentials.requiresCracking) {
-        // Still need to crack them via mission files
+        // Credentials require cracking - must come from mission files
         credentials = null;
       } else {
-        // Use host credentials directly (rare case)
-        credentials = {
-          serverId: server,
-          username: host.credentials.username,
-          password: host.credentials.password,
-        };
-        // Store them for future use
-        connectionStore.setServerCredentials(server, host.credentials.username, host.credentials.password);
+        // Host has non-cracked credentials - only allow if explicitly permitted by mission
+        // For now, we'll be strict: credentials must come from cracked files
+        credentials = null;
       }
     }
     
@@ -234,6 +236,8 @@ export const connectCommand: Command = {
           'Use the crack command on encrypted files to extract passwords.',
           '',
           'Example: crack server-01-credentials.enc',
+          '',
+          'Note: Credentials must be obtained by cracking encrypted files from mission emails.',
         ],
         success: false,
         error: 'Missing credentials',
@@ -267,9 +271,9 @@ export const connectCommand: Command = {
       };
     }
     
-    // Verify server file system exists (query through world graph)
+    // Verify server file system exists (query through world graph, use resolved ID)
     const fileSystemStore = useFileSystemStore.getState();
-    const serverFileSystem = await getServerFileSystem(server);
+    const serverFileSystem = await getServerFileSystem(resolvedServerId);
     
     if (!serverFileSystem) {
       return {
@@ -298,10 +302,10 @@ export const connectCommand: Command = {
         label: `Connecting to ${server}`,
         duration: duration,
         onComplete: () => {
-          connectionStore.connectRemoteServer(server);
+          connectionStore.connectRemoteServer(resolvedServerId);
           // Set active server with username so we can start in the correct home directory
-          fileSystemStore.setActiveServer(server, credentials.username);
-          emitServerConnected(server, credentials.username);
+          fileSystemStore.setActiveServer(resolvedServerId, credentials.username);
+          emitServerConnected(resolvedServerId, credentials.username);
           
           resolve({
             output: [

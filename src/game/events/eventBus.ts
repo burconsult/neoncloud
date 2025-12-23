@@ -24,6 +24,7 @@ export type GameEventType =
   | 'email:received'
   | 'mission:started'
   | 'mission:completed'
+  | 'category:completed'
   | 'task:completed'
   | 'inventory:purchased'
   | 'currency:earned'
@@ -99,6 +100,15 @@ export interface EmailReadEvent extends GameEvent {
   type: 'email:read';
   emailId: string;
   missionId?: string;
+}
+
+/**
+ * Category completed event
+ */
+export interface CategoryCompletedEvent extends GameEvent {
+  type: 'category:completed';
+  category: string;
+  missionId: string;
 }
 
 /**

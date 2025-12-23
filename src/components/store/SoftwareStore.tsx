@@ -145,7 +145,7 @@ export function SoftwareStore() {
                     {software.effects.increaseStorage && (
                       <div className="store-item-effect">
                         <Icon name="server" size={14} aria-hidden={true} />
-                        <span>+{software.effects.increaseStorage}% Storage</span>
+                        <span>+{(software.effects.increaseStorage / 100).toFixed(1)} TB Storage</span>
                       </div>
                     )}
                     {software.effects.reduceLatency && (

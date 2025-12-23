@@ -87,40 +87,90 @@ export const testMissionCommand: Command = {
       };
     }
 
-    // Start the mission (bypasses prerequisite checks since we're using startMission directly)
-    // But first, mark prerequisite missions as completed so mission doesn't think it's locked
+    // For realistic testing: Mark ALL prerequisite missions as completed
+    // This ensures proper progression stats and unlocks all required tools
     const missionStore = useMissionStore.getState();
-    
-    // Temporarily mark prerequisites as completed (for testing only)
-    // Also grant tools from prerequisite missions
     const inventoryStore = useInventoryStore.getState();
-    if (mission.prerequisites && mission.prerequisites.length > 0) {
-      const completedMissions = [...missionStore.completedMissions];
-      mission.prerequisites.forEach(prereq => {
-        if (!completedMissions.includes(prereq)) {
-          completedMissions.push(prereq);
-        }
-        
-        // Grant tools from prerequisite missions
-        const prereqModule = missionRegistry.get(prereq);
-        if (prereqModule && prereqModule.requiredSoftware) {
-          prereqModule.requiredSoftware.forEach(softwareId => {
-            if (!inventoryStore.ownsSoftware(softwareId)) {
-              // Add directly to inventory (bypass purchase logic for testing)
-              const currentOwned = inventoryStore.ownedSoftware;
-              if (!currentOwned.includes(softwareId)) {
-                useInventoryStore.setState({
-                  ownedSoftware: [...currentOwned, softwareId]
-                });
-                console.log(`[TestMission] Granted tool ${softwareId} from prerequisite mission ${prereq}`);
-              }
-            }
-          });
-        }
-      });
-      // Use the set function from zustand
-      useMissionStore.setState({ completedMissions });
+    
+    // Recursively collect all prerequisite missions
+    const allPrerequisites = new Set<string>();
+    const missionsToProcess = [missionId];
+    const processedMissions = new Set<string>();
+    
+    while (missionsToProcess.length > 0) {
+      const currentId = missionsToProcess.shift()!;
+      if (processedMissions.has(currentId)) continue;
+      processedMissions.add(currentId);
+      
+      const currentMission = getMissionById(currentId);
+      if (currentMission && currentMission.prerequisites) {
+        currentMission.prerequisites.forEach(prereq => {
+          allPrerequisites.add(prereq);
+          if (!processedMissions.has(prereq)) {
+            missionsToProcess.push(prereq);
+          }
+        });
+      }
     }
+    
+    // Mark all prerequisites as completed and grant all their tools
+    const completedMissions = new Set([...missionStore.completedMissions]);
+    const ownedSoftware = new Set([...inventoryStore.ownedSoftware]);
+    const { getAllSoftwareFromTools } = await import('../tools/toolLoader');
+    const allSoftware = getAllSoftwareFromTools();
+    
+    // Add all prerequisites to completed missions
+    allPrerequisites.forEach(prereqId => {
+      completedMissions.add(prereqId);
+      
+      // Grant all tools from this prerequisite mission
+      const prereqModule = missionRegistry.get(prereqId);
+      if (prereqModule?.requiredSoftware) {
+        prereqModule.requiredSoftware.forEach(softwareId => {
+          ownedSoftware.add(softwareId);
+          
+          // Also grant premium versions if basic is required
+          const software = allSoftware.find(s => s.id === softwareId);
+          if (software) {
+            // Check if there's a premium version of this tool
+            const toolModule = allSoftware.find(s => 
+              s.id !== softwareId && 
+              s.name.includes('Premium') && 
+              s.name.replace('Premium', '').trim() === software.name.replace('Basic', '').trim()
+            );
+            if (toolModule) {
+              ownedSoftware.add(toolModule.id);
+            }
+          }
+        });
+      }
+    });
+    
+    // Mark all tasks in prerequisite missions as completed for realistic stats
+    const taskProgress: Record<string, Record<string, boolean>> = { ...missionStore.taskProgress };
+    allPrerequisites.forEach(prereqId => {
+      const prereqMission = getMissionById(prereqId);
+      if (prereqMission) {
+        if (!taskProgress[prereqId]) {
+          taskProgress[prereqId] = {};
+        }
+        prereqMission.tasks.forEach(task => {
+          taskProgress[prereqId][task.id] = true;
+        });
+      }
+    });
+    
+    // Update state
+    useMissionStore.setState({ 
+      completedMissions: Array.from(completedMissions),
+      taskProgress,
+    });
+    useInventoryStore.setState({ 
+      ownedSoftware: Array.from(ownedSoftware),
+    });
+    
+    console.log(`[TestMission] Marked ${allPrerequisites.size} prerequisites as completed`);
+    console.log(`[TestMission] Granted ${Array.from(ownedSoftware).length} tools for testing`);
 
     // For testing, allow restarting completed missions by resetting their completion status
     const wasCompleted = missionStore.isMissionCompleted(missionId);
@@ -235,6 +285,86 @@ export const listMissionsCommand: Command = {
       ],
       success: true,
     };
+  },
+};
+
+/**
+ * Mine command - Generate NeonCoins for testing
+ * Hidden debug command - not shown in help, only works in development mode
+ * 
+ * Usage: mine <amount>
+ * Examples:
+ *   mine 1000
+ *   mine 5000
+ */
+export const mineCommand: Command = {
+  name: 'mine',
+  aliases: ['generate', 'coins'],
+  description: 'Generate NeonCoins (development/testing only)',
+  usage: 'mine <amount>',
+  requiresUnlock: false,
+  execute: (args: string[]): CommandResult => {
+    // Only allow in development mode
+    if (!import.meta.env?.DEV) {
+      return {
+        output: 'This command is only available in development mode.',
+        success: false,
+        error: 'Not available in production',
+      };
+    }
+
+    if (args.length === 0 || !args[0]) {
+      return {
+        output: [
+          'Usage: mine <amount>',
+          '',
+          'Generate NeonCoins for testing purposes.',
+          '',
+          'Examples:',
+          '  mine 1000   # Generate 1000 NeonCoins',
+          '  mine 5000   # Generate 5000 NeonCoins',
+        ],
+        success: false,
+        error: 'Missing amount argument',
+      };
+    }
+
+    const amount = parseInt(args[0], 10);
+    
+    if (isNaN(amount) || amount <= 0) {
+      return {
+        output: `Invalid amount: ${args[0]}. Please provide a positive number.`,
+        success: false,
+        error: 'Invalid amount',
+      };
+    }
+
+    if (amount > 100000) {
+      return {
+        output: 'Maximum amount is 100,000 NeonCoins per mine command.',
+        success: false,
+        error: 'Amount too large',
+      };
+    }
+
+        const currencyStore = useCurrencyStore.getState();
+        currencyStore.earn(
+          amount,
+          `Mined ${amount} NeonCoins (debug command)`,
+          'bonus'
+        );
+
+        // Get balance after earning
+        const newBalance = useCurrencyStore.getState().balance;
+
+        return {
+          output: [
+            `✅ Mined ${amount.toLocaleString()} NeonCoins!`,
+            '',
+            `New balance: ${newBalance.toLocaleString()} NC`,
+          ],
+          success: true,
+        };
   },
 };
 

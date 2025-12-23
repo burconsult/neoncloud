@@ -10,12 +10,25 @@
   gap: var(--spacing-xs);
   font-family: var(--font-mono);
   font-size: 1rem;
-  color: var(--color-accent-secondary);
+  color: var(--rank-color, var(--color-accent-secondary));
   font-weight: 600;
   padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1px solid var(--color-accent-secondary);
+  border: 1px solid var(--rank-color, var(--color-accent-secondary));
   border-radius: 4px;
-  background-color: rgba(0, 200, 255, 0.1);
+  background-color: rgba(var(--rank-color-rgb, 0, 200, 255), 0.1);
+  transition: all 0.3s ease;
+}
+
+.player-rank:hover {
+  box-shadow: 0 0 10px rgba(var(--rank-color-rgb, 0, 200, 255), 0.4);
+  border-color: var(--rank-color, var(--color-accent-secondary));
+}
+
+.rank-stars {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-right: var(--spacing-xs);
 }
 
 .rank-icon {
@@ -26,6 +39,7 @@
   text-transform: uppercase;
   font-size: 0.9em;
   letter-spacing: 0.05em;
+  color: var(--rank-color, var(--color-accent-secondary));
 }
 
 .currency-display {

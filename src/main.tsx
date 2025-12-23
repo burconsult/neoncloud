@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { loadMissionModules } from './game/missions/missionLoader';
 import { loadToolModules } from './game/tools/toolLoader';
-import { loadWorldEntities, initializeDiscoveryState } from './game/world/loader';
+import { loadWorldEntities, initializeDiscoveryState, validateWorldGraph } from './game/world/loader';
 import { loadChallengeGenerators } from './game/challenges/challengeLoader';
 import './styles/index.css';
 import './styles/diagrams.css';
@@ -16,6 +16,9 @@ initializeDiscoveryState();
 
 // Load all mission modules at application startup
 loadMissionModules();
+
+// Validate world graph relationships (must be called after both entities and missions are loaded)
+validateWorldGraph();
 
 // Load all tool modules at application startup
 loadToolModules();

@@ -20,7 +20,7 @@ import { disconnectCommand } from './disconnectCommand';
 import { saveCommand, loadCommand, loadFileCommand } from './saveCommand';
 import { mailCommand } from './mailCommand';
 import { loreCommand } from './loreCommand';
-import { testMissionCommand, listMissionsCommand } from './debugCommands';
+import { testMissionCommand, listMissionsCommand, mineCommand } from './debugCommands';
 import { toolRegistry } from '../tools/ToolModule';
 import { loadToolModules } from '../tools/toolLoader';
 import { emitFileRead } from '../events/eventBus';
@@ -79,10 +79,13 @@ const helpCommand: Command = {
     }
 
     // Get unique commands (avoid duplicates from aliases)
+    // Exclude hidden commands from help (mine command)
+    const hiddenCommands = new Set(['mine']);
     const uniqueCommands = new Map<string, Command>();
     registry.forEach((cmd, key) => {
       // Only add if this is the primary command name, not an alias
-      if (cmd.name.toLowerCase() === key) {
+      // Skip hidden commands (like 'mine')
+      if (cmd.name.toLowerCase() === key && !hiddenCommands.has(cmd.name.toLowerCase())) {
         uniqueCommands.set(cmd.name.toLowerCase(), cmd);
       }
     });
@@ -372,6 +375,7 @@ export const createCommandRegistry = (): Map<string, Command> => {
   // Debug commands (only work in development mode)
   testMissionCommand,
   listMissionsCommand,
+  mineCommand,
     // Add commands from tool modules (includes network scanner)
     ...toolCommands,
 ];

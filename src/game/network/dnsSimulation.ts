@@ -5,6 +5,7 @@
 
 import { worldRegistry } from '../world/registry/WorldRegistry';
 import { useDiscoveryStore } from '../world/discovery/DiscoveryStore';
+import { worldGraph } from '../world/graph/WorldGraph';
 
 export interface DNSRecord {
   type: 'A' | 'AAAA' | 'MX' | 'TXT' | 'CNAME' | 'NS';
@@ -193,10 +194,71 @@ export function lookupDNS(
 
   // Try to find organization by domain
   const org = worldRegistry.findOrganizationByDomain(normalizedDomain);
-  if (org && (org.publicDomain || org.domain || org.internalDomain)) {
-    // For organizations, we could create DNS records based on their hosts
-    // For now, we'll fall through to legacy zones or return empty
-    // This can be enhanced later to show organization-level DNS info
+  if (org) {
+    // Find the organization's web server or primary host that matches this domain
+    // First, try to find a host with this exact domain name
+    const orgHosts = worldGraph.getHostsByOrganization(org.id);
+    const domainHost = orgHosts.find(h => 
+      h.domainName?.toLowerCase() === normalizedDomain
+    );
+    
+    if (domainHost && domainHost.dnsRecords) {
+      // Use the host's DNS records
+      const records = convertHostDNSRecordsToDNSRecords(
+        normalizedDomain,
+        domainHost.dnsRecords
+      );
+      
+      // Filter by record type if specified
+      let filteredRecords = records;
+      if (normalizedType && ['A', 'AAAA', 'MX', 'TXT', 'CNAME', 'NS'].includes(normalizedType)) {
+        filteredRecords = records.filter((r) => r.type === normalizedType);
+      }
+      
+      // Discover organization and host through DNS lookup
+      const discoveryStore = useDiscoveryStore.getState();
+      if (!discoveryStore.isOrganizationDiscovered(org.id)) {
+        discoveryStore.discoverOrganization(org.id, 'dns-lookup');
+      }
+      if (!discoveryStore.isHostDiscovered(domainHost.id)) {
+        discoveryStore.discoverHost(domainHost.id, 'dns-lookup');
+      }
+      
+      // Record DNS lookup
+      discoveryStore.recordDNSLookup(normalizedDomain, filteredRecords);
+      
+      return { records: filteredRecords, found: true };
+    }
+    
+    // If no specific host found, create organization-level DNS records
+    // Use the organization's primary host or create synthetic records
+    if (org.hostIds && org.hostIds.length > 0) {
+      // Get the first host as a fallback
+      const primaryHost = worldRegistry.getHost(org.hostIds[0]);
+      if (primaryHost && primaryHost.dnsRecords) {
+        const records = convertHostDNSRecordsToDNSRecords(
+          normalizedDomain,
+          primaryHost.dnsRecords
+        );
+        
+        // Filter by record type if specified
+        let filteredRecords = records;
+        if (normalizedType && ['A', 'AAAA', 'MX', 'TXT', 'CNAME', 'NS'].includes(normalizedType)) {
+          filteredRecords = records.filter((r) => r.type === normalizedType);
+        }
+        
+        // Discover organization through DNS lookup
+        const discoveryStore = useDiscoveryStore.getState();
+        if (!discoveryStore.isOrganizationDiscovered(org.id)) {
+          discoveryStore.discoverOrganization(org.id, 'dns-lookup');
+        }
+        
+        // Record DNS lookup
+        discoveryStore.recordDNSLookup(normalizedDomain, filteredRecords);
+        
+        return { records: filteredRecords, found: true };
+      }
+    }
   }
 
   // Fall back to legacy DNS zones (example.com, dns.google, etc.)

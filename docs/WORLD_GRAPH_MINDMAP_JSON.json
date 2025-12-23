@@ -1,8 +1,9 @@
 {
   "metadata": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "created": "2024-01-20",
-    "description": "Complete world graph structure in JSON format for programmatic access"
+    "updated": "2025-01-20",
+    "description": "Complete world graph structure in JSON format for programmatic access - Updated to reflect current game state with hierarchical host IDs and current missions"
   },
   "entities": {
     "organizations": [
@@ -10,22 +11,27 @@
         "id": "neoncloud",
         "name": "NeonCloud Special Cyberoperations Group",
         "type": "neoncloud",
+        "classification": "employer",
         "ipRange": "10.0.0.0/24",
+        "domain": "neoncloud-ops.org",
         "relationships": {
-          "owns": ["localhost"],
+          "owns": [],
           "employs": ["agent-smith"],
-          "sells": ["network-scanner-basic", "vpn-basic", "password-cracker-basic", "log-shredder-basic"],
-          "missions": ["welcome-00", "n00b-01", "n00b-02"]
+          "sells": ["vpn-basic", "vpn-premium", "password-cracker-basic", "password-cracker-advanced", "log-shredder"],
+          "provides": ["network-scanner-basic"],
+          "missions": ["welcome-00", "tutorial-01", "network-01", "network-02", "network-03", "n00b-01", "n00b-02", "n00b-03", "h4x0r-01"]
         }
       },
       {
         "id": "megacorp",
         "name": "Megacorp Industries",
         "type": "corporation",
-        "ipRange": "192.168.1.0/24",
+        "classification": "target",
+        "ipRange": "203.0.113.0/24",
+        "domain": "megacorp.com",
         "relationships": {
-          "owns": ["server-01", "server-02"],
-          "missions": ["n00b-01", "n00b-02"]
+          "owns": ["megacorp-webserver", "megacorp-server-01", "megacorp-database-01"],
+          "missions": ["n00b-01", "n00b-02", "n00b-03", "h4x0r-01"]
         }
       }
     ],
@@ -35,11 +41,11 @@
         "name": "Agent Smith",
         "organization": "neoncloud",
         "role": "handler",
-        "email": "agent-smith@neoncloud-ops.org",
+        "email": "agent.smith@neoncloud-ops.org",
         "relationships": {
           "worksFor": "neoncloud",
-          "sendsEmails": ["email-welcome-001", "email-first-hack-001", "email-data-extraction-001"],
-          "involvedInMissions": ["welcome-00", "n00b-01", "n00b-02"]
+          "sendsEmails": ["email-welcome-001", "email-first-hack-001", "email-data-extraction-001", "email-network-investigation-001", "email-advanced-penetration-001"],
+          "involvedInMissions": ["welcome-00", "n00b-01", "n00b-02", "n00b-03", "h4x0r-01"]
         }
       }
     ],
@@ -51,36 +57,48 @@
         "ipAddress": "127.0.0.1",
         "role": "workstation",
         "relationships": {
-          "ownedBy": "neoncloud",
-          "connectsTo": ["server-01", "server-02"]
+          "ownedBy": "neoncloud"
         }
       },
       {
-        "id": "server-01",
-        "name": "server-01",
+        "id": "megacorp-webserver",
+        "name": "megacorp-webserver",
+        "displayName": "Megacorp Web Server",
         "organization": "megacorp",
-        "ipAddress": "192.168.1.100",
-        "domain": "server-01.megacorp.local",
+        "ipAddress": "203.0.113.1",
+        "domain": "megacorp.com",
         "role": "web-server",
         "relationships": {
           "ownedBy": "megacorp",
-          "targetedByMissions": ["n00b-01"],
-          "mentionedInEmails": ["email-first-hack-001"],
-          "connectsTo": ["server-02"]
+          "discoveredVia": ["dns-lookup", "scan"]
         }
       },
       {
-        "id": "server-02",
-        "name": "server-02",
+        "id": "megacorp-server-01",
+        "name": "server-01",
+        "displayName": "Server-01",
         "organization": "megacorp",
-        "ipAddress": "192.168.1.101",
-        "domain": "server-02.megacorp.local",
+        "ipAddress": "203.0.113.2",
+        "domain": "server-01.megacorp.com",
+        "role": "file-server",
+        "relationships": {
+          "ownedBy": "megacorp",
+          "targetedByMissions": ["n00b-01", "h4x0r-01"],
+          "mentionedInEmails": ["email-first-hack-001", "email-advanced-penetration-001"]
+        }
+      },
+      {
+        "id": "megacorp-database-01",
+        "name": "server-02",
+        "displayName": "Server-02",
+        "organization": "megacorp",
+        "ipAddress": "203.0.113.3",
+        "domain": "server-02.megacorp.com",
         "role": "database-server",
         "relationships": {
           "ownedBy": "megacorp",
-          "targetedByMissions": ["n00b-02"],
-          "mentionedInEmails": ["email-data-extraction-001"],
-          "connectsTo": ["server-01"]
+          "targetedByMissions": ["n00b-02", "h4x0r-01"],
+          "mentionedInEmails": ["email-data-extraction-001", "email-advanced-penetration-001"]
         }
       }
     ],
@@ -90,120 +108,152 @@
         "name": "Welcome to NeonCloud",
         "category": "training",
         "relationships": {
-          "targetsOrganizations": ["neoncloud"],
+          "targetsOrganizations": [],
           "involvesContacts": ["agent-smith"],
-          "requiresTools": ["network-scanner-basic"],
-          "unlocksMissions": ["tutorial-01"],
-          "unlocksTools": ["network-scanner-basic"],
-          "unlocksLore": ["lore-neoncloud-org"],
-          "sendsEmails": ["email-welcome-001"]
+          "requiresTools": [],
+          "providesTools": ["network-scanner-basic"],
+          "sendsEmails": ["email-welcome-001"],
+          "unlocksLore": ["lore-neoncloud-org"]
         }
       },
       {
         "id": "tutorial-01",
-        "name": "Terminal Navigation",
+        "name": "Terminal Navigation Basics",
         "category": "training",
         "relationships": {
-          "prerequisite": ["welcome-00"],
-          "unlocksMissions": ["network-02"]
+          "prerequisite": ["welcome-00"]
+        }
+      },
+      {
+        "id": "network-01",
+        "name": "Network Connectivity",
+        "category": "training",
+        "relationships": {
+          "prerequisite": ["tutorial-01"]
         }
       },
       {
         "id": "network-02",
-        "name": "Network Connectivity",
+        "name": "Network Topology",
         "category": "training",
         "relationships": {
-          "prerequisite": ["tutorial-01"],
-          "unlocksMissions": ["network-03"]
+          "prerequisite": ["network-01"]
         }
       },
       {
         "id": "network-03",
-        "name": "Network Topology",
-        "category": "training",
-        "relationships": {
-          "prerequisite": ["network-02"],
-          "unlocksMissions": ["network-04"]
-        }
-      },
-      {
-        "id": "network-04",
         "name": "DNS Exploration",
         "category": "training",
         "relationships": {
-          "prerequisite": ["network-03"],
-          "unlocksMissions": ["n00b-01"]
+          "prerequisite": ["network-02"]
         }
       },
       {
         "id": "n00b-01",
-        "name": "First Hack",
+        "name": "First Hack: Megacorp Server-01 Penetration Test",
         "category": "script-kiddie",
         "relationships": {
-          "prerequisite": ["network-04"],
+          "prerequisite": ["network-03"],
           "targetsOrganizations": ["megacorp"],
-          "targetsHosts": ["server-01"],
+          "targetsHosts": ["megacorp-server-01"],
           "involvesContacts": ["agent-smith"],
           "requiresTools": ["vpn-basic", "password-cracker-basic"],
-          "unlocksMissions": ["n00b-02"],
-          "unlocksTools": ["vpn-basic", "password-cracker-basic"],
-          "sendsEmails": ["email-first-hack-001"]
+          "sendsEmails": ["email-first-hack-001"],
+          "hasAttachments": ["megacorp-server-01-credentials.enc"]
         }
       },
       {
         "id": "n00b-02",
-        "name": "Data Extraction",
+        "name": "Data Extraction: Megacorp Database-01 Access",
         "category": "script-kiddie",
         "relationships": {
           "prerequisite": ["n00b-01"],
           "targetsOrganizations": ["megacorp"],
-          "targetsHosts": ["server-02"],
+          "targetsHosts": ["megacorp-database-01"],
           "involvesContacts": ["agent-smith"],
-          "requiresTools": ["vpn-basic", "password-cracker-basic", "log-shredder-basic"],
-          "unlocksTools": ["log-shredder-basic"],
-          "sendsEmails": ["email-data-extraction-001"]
+          "requiresTools": ["vpn-basic", "password-cracker-basic", "log-shredder"],
+          "sendsEmails": ["email-data-extraction-001"],
+          "hasAttachments": ["megacorp-database-01-credentials.enc"]
+        }
+      },
+      {
+        "id": "n00b-03",
+        "name": "Network Investigation",
+        "category": "script-kiddie",
+        "relationships": {
+          "prerequisite": ["n00b-02"],
+          "targetsOrganizations": ["megacorp"],
+          "targetsHosts": ["megacorp-server-01", "megacorp-database-01"],
+          "involvesContacts": ["agent-smith"],
+          "requiresTools": [],
+          "sendsEmails": ["email-network-investigation-001"]
+        }
+      },
+      {
+        "id": "h4x0r-01",
+        "name": "Advanced Penetration: Megacorp Data Exfiltration",
+        "category": "cyber-warrior",
+        "relationships": {
+          "prerequisite": ["n00b-03"],
+          "targetsOrganizations": ["megacorp"],
+          "targetsHosts": ["megacorp-server-01", "megacorp-database-01"],
+          "involvesContacts": ["agent-smith"],
+          "requiresTools": ["vpn-premium", "password-cracker-advanced", "log-shredder"],
+          "sendsEmails": ["email-advanced-penetration-001"],
+          "hasAttachments": ["megacorp-server-01-advanced-credentials.enc", "megacorp-database-01-advanced-credentials.enc"]
         }
       }
     ],
     "tools": [
       {
-        "id": "network-scanner-basic",
+        "id": "network-scanner",
         "name": "Network Scanner",
         "vendor": "neoncloud",
         "relationships": {
-          "soldBy": "neoncloud",
-          "unlockedBy": ["welcome-00"],
-          "requiredBy": ["welcome-00"]
+          "soldBy": null,
+          "providedBy": "neoncloud",
+          "software": {
+            "basic": "network-scanner-basic"
+          },
+          "requiredBy": ["welcome-00", "n00b-01", "n00b-02", "h4x0r-01"]
         }
       },
       {
-        "id": "vpn-basic",
-        "name": "VPN Basic",
+        "id": "vpn",
+        "name": "VPN",
         "vendor": "neoncloud",
         "relationships": {
           "soldBy": "neoncloud",
-          "unlockedBy": ["n00b-01"],
-          "requiredBy": ["n00b-01", "n00b-02"]
+          "software": {
+            "basic": "vpn-basic",
+            "premium": "vpn-premium"
+          },
+          "requiredBy": ["n00b-01", "n00b-02", "h4x0r-01"]
         }
       },
       {
-        "id": "password-cracker-basic",
-        "name": "Password Cracker Basic",
+        "id": "password-cracker",
+        "name": "Password Cracker",
         "vendor": "neoncloud",
         "relationships": {
           "soldBy": "neoncloud",
-          "unlockedBy": ["n00b-01"],
-          "requiredBy": ["n00b-01", "n00b-02"]
+          "software": {
+            "basic": "password-cracker-basic",
+            "advanced": "password-cracker-advanced"
+          },
+          "requiredBy": ["n00b-01", "n00b-02", "h4x0r-01"]
         }
       },
       {
-        "id": "log-shredder-basic",
-        "name": "Log Shredder Basic",
+        "id": "log-shredder",
+        "name": "Log Shredder",
         "vendor": "neoncloud",
         "relationships": {
           "soldBy": "neoncloud",
-          "unlockedBy": ["n00b-02"],
-          "requiredBy": ["n00b-02"]
+          "software": {
+            "basic": "log-shredder"
+          },
+          "requiredBy": ["n00b-02", "h4x0r-01"]
         }
       }
     ],
@@ -215,7 +265,8 @@
           "fromContact": "agent-smith",
           "fromOrganization": "neoncloud",
           "relatedToMission": "welcome-00",
-          "unlocksLore": ["lore-neoncloud-org"]
+          "unlocksLore": ["lore-neoncloud-org"],
+          "hasAttachments": ["welcome-package.enc"]
         }
       },
       {
@@ -225,9 +276,9 @@
           "fromContact": "agent-smith",
           "fromOrganization": "neoncloud",
           "relatedToMission": "n00b-01",
-          "mentionsHosts": ["server-01"],
+          "mentionsHosts": ["megacorp-server-01"],
           "mentionsOrganizations": ["megacorp"],
-          "hasAttachments": ["server-01-credentials.enc"]
+          "hasAttachments": ["megacorp-server-01-credentials.enc"]
         }
       },
       {
@@ -237,9 +288,32 @@
           "fromContact": "agent-smith",
           "fromOrganization": "neoncloud",
           "relatedToMission": "n00b-02",
-          "mentionsHosts": ["server-02"],
+          "mentionsHosts": ["megacorp-database-01"],
           "mentionsOrganizations": ["megacorp"],
-          "hasAttachments": ["server-02-credentials.enc"]
+          "hasAttachments": ["megacorp-database-01-credentials.enc"]
+        }
+      },
+      {
+        "id": "email-network-investigation-001",
+        "subject": "Network Investigation Contract",
+        "relationships": {
+          "fromContact": "agent-smith",
+          "fromOrganization": "neoncloud",
+          "relatedToMission": "n00b-03",
+          "mentionsHosts": ["megacorp-server-01", "megacorp-database-01"],
+          "mentionsOrganizations": ["megacorp"]
+        }
+      },
+      {
+        "id": "email-advanced-penetration-001",
+        "subject": "High-Priority Contract: Multi-Server Penetration Test",
+        "relationships": {
+          "fromContact": "agent-smith",
+          "fromOrganization": "neoncloud",
+          "relatedToMission": "h4x0r-01",
+          "mentionsHosts": ["megacorp-server-01", "megacorp-database-01"],
+          "mentionsOrganizations": ["megacorp"],
+          "hasAttachments": ["megacorp-server-01-advanced-credentials.enc", "megacorp-database-01-advanced-credentials.enc"]
         }
       }
     ],
@@ -255,18 +329,19 @@
     ]
   },
   "statistics": {
-    "totalEntities": 21,
+    "totalEntities": 27,
     "organizations": 2,
     "contacts": 1,
-    "hosts": 3,
-    "missions": 7,
+    "hosts": 4,
+    "missions": 9,
     "tools": 4,
-    "emails": 3,
+    "emails": 5,
     "lore": 1,
     "relationshipTypes": [
       "owns",
       "employs",
       "sells",
+      "provides",
       "targets",
       "requires",
       "unlocks",
@@ -276,6 +351,7 @@
       "mentions",
       "unlockedBy",
       "soldBy",
+      "providedBy",
       "requiredBy",
       "involves",
       "worksFor",
@@ -284,8 +360,14 @@
       "targetedByMissions",
       "mentionedInEmails",
       "relatedToMission",
-      "hasAttachments"
+      "hasAttachments",
+      "discoveredVia"
     ]
+  },
+  "notes": {
+    "hostIdMigration": "Host IDs now use hierarchical format: [organization-id]-[role]-[instance] (e.g., megacorp-server-01, megacorp-database-01, megacorp-webserver)",
+    "ipRangeUpdate": "Megacorp IP range updated from private (192.168.1.0/24) to public (203.0.113.0/24) for realistic network discovery",
+    "missionOrdering": "Mission ordering is now dynamic based on category and mission number, removing need for hardcoded unlocks arrays",
+    "worldGraphIntegration": "All entities are integrated into the world graph system with validation and indexed lookups"
   }
 }
-

@@ -27,10 +27,24 @@ export const storeCommand: Command = {
 
       if (subcommand === 'inventory' || subcommand === 'inv') {
         const ownedSoftware = inventoryStore.getOwnedSoftware();
+        const storageUsage = inventoryStore.getStorageUsage();
+        const storageRemaining = inventoryStore.getStorageRemaining();
+        const storageCapacity = inventoryStore.storageCapacity;
+        
+        // Convert to TB for display (100 units = 1 TB)
+        const formatStorage = (units: number): string => {
+          const tb = (units / 100).toFixed(2);
+          return `${tb} TB`;
+        };
         
         if (ownedSoftware.length === 0) {
           return {
-            output: 'You don\'t own any software yet. Visit the store to purchase items!',
+            output: [
+              'You don\'t own any software yet. Visit the store to purchase items!',
+              '',
+              `Storage: ${formatStorage(storageUsage)} / ${formatStorage(storageCapacity)} used`,
+              `Remaining: ${formatStorage(storageRemaining)}`,
+            ],
             success: true,
           };
         }
@@ -38,11 +52,14 @@ export const storeCommand: Command = {
         const output = [
           'Owned Software:',
           '',
-          ...ownedSoftware.map(software => 
-            `  • ${software.name} (${software.category})`
-          ),
+          ...ownedSoftware.map(software => {
+            const storageSize = software.storageSize !== undefined ? software.storageSize : 10;
+            const storageTB = (storageSize / 100).toFixed(2);
+            return `  • ${software.name} (${software.category}) - ${storageTB} TB`;
+          }),
           '',
-          `Storage Capacity: ${inventoryStore.storageCapacity} MB`,
+          `Storage: ${formatStorage(storageUsage)} / ${formatStorage(storageCapacity)} used`,
+          `Remaining: ${formatStorage(storageRemaining)}`,
         ];
 
         return {

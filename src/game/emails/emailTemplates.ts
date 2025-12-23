@@ -68,16 +68,16 @@ Keep practicing your skills!`,
  */
 export function createFirstHackEmail(): Email {
   // Get display names and info from world graph
-  const targetHostName = getHostDisplayName('server-01');
+  const targetHostName = getHostDisplayName('megacorp-server-01');
   const targetOrgName = getOrganizationDisplayName('megacorp');
   
   // Get host IP from registry for dynamic content
-  const host = worldRegistry.getHost('server-01');
-  const hostIP = host?.ipAddress || '192.168.1.100';
+  const host = worldRegistry.getHost('megacorp-server-01');
+  const hostIP = host?.ipAddress || '203.0.113.2';
   
   // Get organization IP range
   const org = worldRegistry.getOrganization('megacorp');
-  const ipRange = org?.ipRange || '192.168.1.0/24';
+  const ipRange = org?.ipRange || '203.0.113.0/24';
   
   return {
     id: 'email-first-hack-001',
@@ -87,7 +87,7 @@ export function createFirstHackEmail(): Email {
     worldGraph: {
       fromContactId: 'agent-smith', // Email from Agent Smith
       fromOrganizationId: 'neoncloud', // Email from NeonCloud
-      relatedHostIds: ['server-01'], // Mentions server-01
+      relatedHostIds: ['megacorp-server-01'], // Mentions server-01
       relatedOrganizationIds: ['megacorp'], // Mentions Megacorp
     },
     body: `Agent,
@@ -96,27 +96,37 @@ We have a new contract assignment for you. A client has requested a penetration 
 
 **Target Information:**
 - Organization: ${targetOrgName}
-- Network: Internal network (${ipRange})
-- Primary Target: ${targetHostName} (discover via network scan)
+- Public Domain: megacorp.com
+- Primary Target: ${targetHostName} (discover via reconnaissance)
 - Purpose: Internal file server
 - Security Level: Basic
 
 **Mission Objectives:**
-1. Scan the ${targetOrgName} network (${ipRange}) to discover active hosts
-2. Acquire necessary tools (VPN, Password Cracker) from the store
-3. Connect to VPN for anonymity
-4. Extract server credentials from the encrypted file attached to this email
-5. Connect to ${targetHostName} using the extracted credentials
-6. Access the target file located at /home/data/secret.txt
-7. Disconnect and report back
+1. Use your training tools (ping, nslookup) to discover the organization's network infrastructure
+2. Identify the network range and scan for active hosts
+3. Acquire necessary tools (VPN, Password Cracker) from the store
+4. Connect to VPN for anonymity
+5. Extract server credentials from the encrypted file attached to this email
+6. Connect to ${targetHostName} using the extracted credentials
+7. Access the target file located at /home/admin/data/secret.txt
+8. Disconnect and report back
 
 **Important Notes:**
-- Use your Network Scanner to scan the target network range (${ipRange})
-- This will reveal active hosts including ${targetHostName}
+- Start by investigating megacorp.com using the tools you learned in training
+- Use ping or nslookup to discover the organization's IP addresses
+- From the discovered IP, you can deduce the network range to scan
+- Use your Network Scanner to scan the network range and discover active hosts
+- This will reveal ${targetHostName} so you know what to connect to
 - Use VPN to protect your identity during this operation
 - The attached file contains encrypted credentials - you'll need your password cracker tool
 - Server access requires both username and password
 - Always disconnect when your mission is complete
+
+**Reconnaissance Tips:**
+- Try: ping megacorp.com (to discover the IP address)
+- Or: nslookup megacorp.com (to get DNS records)
+- From the IP address, determine the network range (e.g., if IP is 203.0.113.1, try scanning 203.0.113.0/24)
+- Scan the network range to discover all active hosts
 
 The encrypted credentials file is attached. Extract the password, then connect using:
   Username: admin
@@ -130,7 +140,7 @@ contracts@neoncloud-ops.org`,
     read: false,
     attachments: [
       {
-        filename: 'server-01-credentials.enc',
+        filename: 'megacorp-server-01-credentials.enc',
         encrypted: true,
         encryptedContent: `V7#kM9$pL2@qW4%rT6&yU8!iO1*zA3(eR5)fH7+gJ9-hK2_iN4=lO6{mP8}nQ1|sB3~tD5`,
         // decryptedContent is set after decryption, not before
@@ -146,12 +156,12 @@ contracts@neoncloud-ops.org`,
  */
 export function createDataExtractionEmail(): Email {
   // Get display names and info from world graph
-  const targetHostName = getHostDisplayName('server-02');
+  const targetHostName = getHostDisplayName('megacorp-database-01');
   const targetOrgName = getOrganizationDisplayName('megacorp');
   
   // Get host IP from registry for dynamic content
-  const host = worldRegistry.getHost('server-02');
-  const hostIP = host?.ipAddress || '192.168.1.101';
+  const host = worldRegistry.getHost('megacorp-database-01');
+  const hostIP = host?.ipAddress || '203.0.113.3';
   
   return {
     id: 'email-data-extraction-001',
@@ -161,7 +171,7 @@ export function createDataExtractionEmail(): Email {
     worldGraph: {
       fromContactId: 'agent-smith', // Email from Agent Smith
       fromOrganizationId: 'neoncloud', // Email from NeonCloud
-      relatedHostIds: ['server-02'], // Mentions server-02
+      relatedHostIds: ['megacorp-database-01'], // Mentions server-02
       relatedOrganizationIds: ['megacorp'], // Mentions Megacorp
     },
     body: `Agent,
@@ -202,7 +212,7 @@ contracts@neoncloud-ops.org`,
     read: false,
     attachments: [
       {
-        filename: 'server-02-credentials.enc',
+        filename: 'megacorp-database-01-credentials.enc',
         encrypted: true,
         encryptedContent: `M8#nP4$wK9@rL2%tM6&xY1!jV7*oZ3^eB5(cF8)dH2+eI9-fJ4_gN6=hO7{kP3}qR8|sT1~uW4`,
         password: 'cyberpass456',

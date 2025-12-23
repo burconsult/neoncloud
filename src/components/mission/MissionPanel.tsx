@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useMissionStore } from '@/game/state/useMissionStore';
 import { useMissionPanelStore } from '@/game/state/useMissionPanelStore';
 import { getAllMissions, getMissionCategories, getCategoryDisplayName } from '@/game/missions/missionLoader';
+import { getCategoryColor, getCategoryStars } from '@/game/missions/categoryUtils';
 import { MissionCategory } from '@/types';
 import { Icon } from '@/components/ui/Icon';
 import './MissionPanel.css';
@@ -106,15 +107,45 @@ export function MissionPanel() {
           if (categoryMissions.length === 0) return null;
 
           return (
-            <div key={category} className="mission-category">
+            <div 
+              key={category} 
+              className="mission-category"
+              style={{ '--category-color': getCategoryColor(category) } as React.CSSProperties}
+            >
               <div className="mission-category-header">
-                <Icon 
-                  name={category === 'training' ? 'book-open' : category === 'script-kiddie' ? 'terminal' : category === 'cyber-warrior' ? 'shield' : 'code'} 
-                  size={18} 
-                  className="mission-category-icon" 
-                  aria-hidden={true} 
-                />
-                <h4 className="mission-category-title">{getCategoryDisplayName(category)}</h4>
+                <span 
+                  className="mission-category-icon"
+                  style={{ color: getCategoryColor(category) }}
+                >
+                  <Icon 
+                    name={category === 'training' ? 'book-open' : category === 'script-kiddie' ? 'terminal' : category === 'cyber-warrior' ? 'shield' : 'code'} 
+                    size={18} 
+                    aria-hidden={true} 
+                  />
+                </span>
+                <h4 
+                  className="mission-category-title"
+                  style={{ color: getCategoryColor(category) }}
+                >
+                  {getCategoryDisplayName(category)}
+                </h4>
+                <div className="mission-category-stars">
+                  {Array.from({ length: 4 }, (_, i) => (
+                    <span
+                      key={i}
+                      style={{ 
+                        color: i < getCategoryStars(category) ? getCategoryColor(category) : '#444',
+                        opacity: i < getCategoryStars(category) ? 1 : 0.3
+                      }}
+                    >
+                      <Icon
+                        name={i < getCategoryStars(category) ? 'award' : 'circle'}
+                        size={14}
+                        aria-hidden={true}
+                      />
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="mission-category-missions">
                 {categoryMissions.map((mission) => {

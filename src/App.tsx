@@ -25,6 +25,7 @@ import './App.css';
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [showEndScreen, setShowEndScreen] = useState(false);
+  const [categoryCompletion, setCategoryCompletion] = useState<{ category: string; isFinal: boolean } | null>(null);
 
   // Initialize game systems on mount
   useEffect(() => {
@@ -75,10 +76,23 @@ function App() {
       }, 100);
     });
     
+    // Listen for category completion events
+    const unsubscribeCategoryComplete = eventBus.on('category:completed', ({ category, missionId }) => {
+      // Check if this is the final category (all missions completed)
+      const missionStore = useMissionStore.getState();
+      const completedMissions = missionStore.completedMissions || [];
+      const allMissions = getAllMissions();
+      const isFinal = allMissions.length > 0 && completedMissions.length >= allMissions.length;
+      
+      setCategoryCompletion({ category, isFinal });
+      setShowEndScreen(true);
+    });
+    
     // Cleanup on unmount
     return () => {
       unsubscribeLogout();
       unsubscribeMissionComplete();
+      unsubscribeCategoryComplete();
     };
   }, [gameStarted]);
 
@@ -115,6 +129,8 @@ function App() {
     useMissionStore.getState().startMission('welcome-00').catch(console.error);
 
     setGameStarted(true);
+    setShowEndScreen(false);
+    setCategoryCompletion(null);
   };
 
   const handleContinueGame = () => {
@@ -138,20 +154,52 @@ function App() {
   const handleEndScreenRestart = () => {
     handleStartNewGame(useAuthStore.getState().username || 'player');
     setShowEndScreen(false);
+    setCategoryCompletion(null);
   };
 
-  const handleEndScreenContinue = () => {
+  const handleEndScreenContinue = async () => {
     setShowEndScreen(false);
-    // Continue exploring the completed game
+    const currentCategoryCompletion = categoryCompletion;
+    setCategoryCompletion(null);
+    
+    // Continue to next mission if category was completed (but not final)
+    if (currentCategoryCompletion && !currentCategoryCompletion.isFinal) {
+      const missionStore = useMissionStore.getState();
+      const allMissions = getAllMissions();
+      const completedMissions = missionStore.completedMissions || [];
+      
+      // Find the first mission in the next category that's not completed
+      const currentCategory = currentCategoryCompletion.category;
+      const categories = ['training', 'script-kiddie', 'cyber-warrior', 'digital-ninja'];
+      const currentIndex = categories.indexOf(currentCategory);
+      
+      if (currentIndex < categories.length - 1) {
+        const nextCategory = categories[currentIndex + 1];
+        const nextMission = allMissions.find(m => 
+          m.category === nextCategory && !completedMissions.includes(m.id)
+        );
+        
+        if (nextMission) {
+          missionStore.startMission(nextMission.id).catch(console.error);
+        }
+      }
+    }
   };
 
   if (!gameStarted) {
     return <IntroScreen onStartNewGame={handleStartNewGame} onContinueGame={handleContinueGame} />;
   }
 
-  if (showEndScreen) {
-    return <EndScreen onRestart={handleEndScreenRestart} onContinue={handleEndScreenContinue} />;
-  }
+      if (showEndScreen) {
+        return (
+          <EndScreen 
+            onRestart={handleEndScreenRestart} 
+            onContinue={handleEndScreenContinue}
+            category={categoryCompletion?.category}
+            isFinal={categoryCompletion?.isFinal ?? false}
+          />
+        );
+      }
 
   return (
     <div className="app">

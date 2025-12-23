@@ -4,20 +4,30 @@ import { useMissionStore } from '@/game/state/useMissionStore';
 import { useCurrencyStore } from '@/game/state/useCurrencyStore';
 import { getAllMissions } from '@/game/missions/missionLoader';
 import { getPlayerRank } from '@/game/player/playerRank';
+import { 
+  getCategoryColor, 
+  getCategoryName, 
+  getCategoryStars,
+  getCategoryStats,
+} from '@/game/missions/categoryUtils';
+import { MissionCategory } from '@/types';
 import './EndScreen.css';
 
 interface EndScreenProps {
   onRestart: () => void;
   onContinue: () => void;
+  category?: string; // Category that was just completed
+  isFinal?: boolean; // Whether this is the final completion screen
 }
 
-export function EndScreen({ onRestart, onContinue }: EndScreenProps) {
+export function EndScreen({ onRestart, onContinue, category, isFinal = false }: EndScreenProps) {
   const [stats, setStats] = useState<{
     totalMissions: number;
     completedMissions: number;
     totalNeonCoins: number;
     playerRank: string;
     completionPercentage: number;
+    categoryStats?: Record<MissionCategory, { completed: number; total: number; percentage: number }>;
   } | null>(null);
 
   useEffect(() => {
@@ -34,12 +44,21 @@ export function EndScreen({ onRestart, onContinue }: EndScreenProps) {
     
     const playerRankInfo = getPlayerRank();
     
+    // Get stats for each category
+    const categoryStats: Record<MissionCategory, { completed: number; total: number; percentage: number }> = {
+      'training': getCategoryStats('training'),
+      'script-kiddie': getCategoryStats('script-kiddie'),
+      'cyber-warrior': getCategoryStats('cyber-warrior'),
+      'digital-ninja': getCategoryStats('digital-ninja'),
+    };
+    
     setStats({
       totalMissions,
       completedMissions: completedCount,
       totalNeonCoins: currencyStore.balance,
       playerRank: playerRankInfo.rank,
       completionPercentage,
+      categoryStats,
     });
   }, []);
 

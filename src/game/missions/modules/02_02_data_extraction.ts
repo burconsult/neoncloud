@@ -19,7 +19,7 @@ export const dataExtractionMissionModule: MissionModule = {
   // World Graph Relationships
   worldGraph: {
     clientOrganizationId: 'neoncloud', // Mission provided by NeonCloud
-    targetHostIds: ['server-02'], // Target host
+    targetHostIds: ['megacorp-database-01'], // Target host
     targetOrganizationIds: ['megacorp'], // Target organization
     contactId: 'agent-smith', // Contact who briefs the player
   },
@@ -94,10 +94,11 @@ export const dataExtractionMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('n00b-02', 'Connect to server-02 using the extracted credentials'),
         hints: getTaskHints('n00b-02', [
-          'Type "connect server-02" after decrypting credentials',
+          'Type "ssh server-02" or "ssh admin@server-02" after decrypting credentials',
           'Credentials are automatically loaded after decryption',
+          'You can also use "connect server-02" as an alias',
         ]),
-        solution: 'connect server-02',
+        solution: 'ssh server-02',
         reward: 30,
       },
       {
@@ -146,10 +147,11 @@ export const dataExtractionMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('n00b-02', 'Disconnect from server-02 after completing the mission'),
         hints: getTaskHints('n00b-02', [
-          'Use "disconnect" to disconnect from the server',
+          'Use "logout" to disconnect from the server',
+          'You can also use "disconnect" as an alias',
           'Always disconnect after completing objectives',
         ]),
-        solution: 'disconnect',
+        solution: 'logout',
         reward: 25,
       },
     ],

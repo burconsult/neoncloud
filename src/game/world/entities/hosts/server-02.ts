@@ -472,22 +472,22 @@ log-error=/var/log/mysql/error.log`,
 }
 
 export const server02Host: Host = {
-  id: 'server-02',
+  id: 'megacorp-database-01',
   name: 'server-02',
   displayName: 'Server-02',
   
   // Network Identity
-  ipAddress: '192.168.1.101',
-  domainName: 'server-02.megacorp.local',
+  ipAddress: '203.0.113.3', // Public IP address (TEST-NET-3 range, safe for examples)
+  domainName: 'server-02.megacorp.com',
   macAddress: '00:1B:44:11:3A:B8',
   
   // DNS Records
   dnsRecords: {
-    A: ['192.168.1.101'],
+    A: ['203.0.113.3'],
     AAAA: [],
     CNAME: [],
     MX: [],
-    TXT: ['v=spf1 include:_spf.megacorp.local'],
+    TXT: ['v=spf1 include:_spf.megacorp.com'],
   },
   
   // Organization Relationship
@@ -514,7 +514,7 @@ export const server02Host: Host = {
   },
   
   // File System - Defined directly in host entity
-  fileSystemId: 'server-02',
+  fileSystemId: 'megacorp-database-01',
   fileSystemFactory: createServer02FileSystem,
   
   // Network Topology

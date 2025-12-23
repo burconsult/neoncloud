@@ -6,6 +6,7 @@
 
 import { worldRegistry } from '../world/registry/WorldRegistry';
 import { useDiscoveryStore } from '../world/discovery/DiscoveryStore';
+import { worldGraph } from '../world/graph/WorldGraph';
 
 export interface NetworkHost {
   name: string;
@@ -91,6 +92,7 @@ const legacyNetworkHosts: NetworkHost[] = [
 /**
  * Find a host by name, IP, or domain
  * First checks world registry, then falls back to legacy hosts
+ * Also resolves organization domains through the graph system
  */
 export function findHost(query: string): NetworkHost | null {
   const lowerQuery = query.toLowerCase().trim();
@@ -109,6 +111,53 @@ export function findHost(query: string): NetworkHost | null {
     }
     
     return convertHostToNetworkHost(worldHost);
+  }
+  
+  // Try to resolve organization domain through graph system
+  // This allows ping/nslookup megacorp.com to work
+  const org = worldGraph.findOrganizationByDomain(lowerQuery);
+  if (org) {
+    // Find the organization's web server or primary host that matches this domain
+    const orgHosts = worldGraph.getHostsByOrganization(org.id);
+    const domainHost = orgHosts.find(h => 
+      h.domainName?.toLowerCase() === lowerQuery
+    );
+    
+    if (domainHost) {
+      // Discover organization and host
+      const discoveryStore = useDiscoveryStore.getState();
+      if (!discoveryStore.isOrganizationDiscovered(org.id)) {
+        discoveryStore.discoverOrganization(org.id, 'dns-lookup');
+      }
+      if (!discoveryStore.isHostDiscovered(domainHost.id)) {
+        discoveryStore.discoverHost(domainHost.id, 'dns-lookup');
+      }
+      
+      return convertHostToNetworkHost(domainHost);
+    }
+    
+    // If no specific host found, use the first host as fallback
+    // Or create a synthetic host for the organization domain
+    if (org.hostIds && org.hostIds.length > 0) {
+      const primaryHost = worldRegistry.getHost(org.hostIds[0]);
+      if (primaryHost) {
+        // Discover organization
+        const discoveryStore = useDiscoveryStore.getState();
+        if (!discoveryStore.isOrganizationDiscovered(org.id)) {
+          discoveryStore.discoverOrganization(org.id, 'dns-lookup');
+        }
+        
+        // Return a NetworkHost with the organization domain
+        return {
+          name: org.displayName || org.name,
+          ip: primaryHost.ipAddress,
+          domain: org.publicDomain || org.domain || lowerQuery,
+          isOnline: primaryHost.isOnline !== undefined ? primaryHost.isOnline : true,
+          baseLatency: primaryHost.baseLatency !== undefined ? primaryHost.baseLatency : 25,
+          description: `${org.displayName || org.name} web server`,
+        };
+      }
+    }
   }
   
   // Fall back to legacy network hosts

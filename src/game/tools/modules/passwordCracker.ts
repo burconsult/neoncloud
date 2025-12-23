@@ -31,6 +31,7 @@ export const passwordCrackerToolModule: ToolModule = {
     category: 'security',
     rarity: 'common',
     price: 300,
+    storageSize: 16, // Takes 16 storage units (0.16 TB)
     requirements: {
       completedMissions: ['tutorial-01'],
     },
@@ -46,6 +47,7 @@ export const passwordCrackerToolModule: ToolModule = {
     category: 'security',
     rarity: 'uncommon',
     price: 750,
+    storageSize: 32, // Takes 32 storage units (0.32 TB - advanced version needs more space for dictionaries/rainbow tables)
     requirements: {
       completedMissions: ['network-01'],
     },
@@ -210,14 +212,23 @@ export const passwordCrackerToolModule: ToolModule = {
                   );
                   
                   if (addResult.success) {
-                    // Store credentials if password is found
+                    // Store credentials if password is found and file is a credential file
                     if (password && filePathResult.filename.includes('credentials')) {
-                      const serverIdMatch = filePathResult.filename.match(/(server-\d+)/);
-                      if (serverIdMatch && serverIdMatch[1]) {
-                        const serverId = serverIdMatch[1];
-                        const username = 'admin';
+                      // Extract host ID from credential filename (supports both old and new formats)
+                      const { extractHostIdFromCredentialFilename, resolveHostId } = await import('../../world/utils/hostIdUtils');
+                      const extractedHostId = extractHostIdFromCredentialFilename(filePathResult.filename);
+                      
+                      if (extractedHostId) {
+                        // Resolve to new format if needed (for backwards compatibility)
+                        const serverId = resolveHostId(extractedHostId);
+                        
+                        // Extract username from decrypted content or use default
+                        const usernameMatch = decryptedText.match(/Username:\s*(\S+)/i);
+                        const username = usernameMatch && usernameMatch[1] ? usernameMatch[1] : 'admin';
+                        
                         const connectionStore = useConnectionStore.getState();
                         connectionStore.setServerCredentials(serverId, username, password);
+                        logger.debug(`Credentials stored for host: ${serverId} (username: ${username})`);
                       }
                     }
                     

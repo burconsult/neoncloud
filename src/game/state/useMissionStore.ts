@@ -209,6 +209,19 @@ export const useMissionStore = create<MissionState>()(
         timestamp: Date.now(),
       });
       
+      // Check if a category was just completed
+      const { checkCategoryCompletion } = await import('../missions/categoryCompletion');
+      const completedCategory = checkCategoryCompletion(missionId);
+      
+      // If a category was completed, emit event (App.tsx will show category completion screen)
+      if (completedCategory) {
+        logger.info(`Category completed: ${completedCategory} after mission ${missionId}`);
+        // Category completion screen will be shown by App.tsx
+        // Don't auto-load next mission yet - wait for user to acknowledge category completion
+        set({ currentMission: null });
+        return;
+      }
+      
       // Use dynamic mission ordering to find next mission
       const { getNextMission, isLastMission } = await import('../missions/missionOrdering');
       

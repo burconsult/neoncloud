@@ -24,6 +24,7 @@
   --font-mono: 'Courier New', 'Monaco', 'Menlo', 'Consolas', monospace;
   --font-size-base: 16px;
   --font-size-small: 14px;
+  --font-size-medium: 16px;
   --font-size-large: 18px;
   
   /* Spacing */
@@ -34,8 +35,8 @@
   --spacing-xl: 32px;
   
   /* Layout */
-  --max-width: 1400px;
-  --sidebar-width: 300px;
+  --max-width: 1600px;
+  --sidebar-width: 380px;
 }
 
 html, body {

@@ -18,14 +18,10 @@ export interface Path {
 export class WorldGraph {
   /**
    * Get all hosts owned by an organization
+   * Uses registry's indexed method for O(1) lookup
    */
   getHostsByOrganization(orgId: string): Host[] {
-    const org = worldRegistry.getOrganization(orgId);
-    if (!org) return [];
-    
-    return org.hostIds
-      .map(hostId => worldRegistry.getHost(hostId))
-      .filter((host): host is Host => host !== undefined);
+    return worldRegistry.getHostsByOrganization(orgId);
   }
 
   /**
@@ -40,14 +36,10 @@ export class WorldGraph {
 
   /**
    * Get all contacts associated with an organization
+   * Uses registry's indexed method for O(1) lookup
    */
   getContactsByOrganization(orgId: string): Contact[] {
-    const org = worldRegistry.getOrganization(orgId);
-    if (!org) return [];
-    
-    return org.contactIds
-      .map(contactId => worldRegistry.getContact(contactId))
-      .filter((contact): contact is Contact => contact !== undefined);
+    return worldRegistry.getContactsByOrganization(orgId);
   }
 
   /**

@@ -13,6 +13,7 @@ import { createCommandRegistry } from '../commands/commandRegistry';
 import { getMissionTargetHosts, getEmailsByMission } from '../world/graph/WorldGraphQueries';
 import { missionRegistry } from './MissionModule';
 import { resolveFilePath } from '../filesystem/fileSystem';
+import { resolveHostId } from '../world/utils/hostIdUtils';
 
 /**
  * Parse a solution string into command and arguments
@@ -154,7 +155,7 @@ function matchesCommandSolution(
   const solutionCommand = parsedSolution.command;
   const solutionArgs = parsedSolution.args;
   
-  // Get command registry for alias checking
+  // Get command registry for alias checking (used throughout this function)
   const registry = createCommandRegistry();
   
   // For crack commands, rely on tool:used event instead of command:executed
@@ -162,15 +163,28 @@ function matchesCommandSolution(
     return false; // Handled by tool:used event
   }
   
-  // For disconnect commands, rely on server:disconnected event
-  if (solutionCommand === 'disconnect' && command === 'disconnect') {
+  // For ssh/connect commands, rely on server:connected event for accurate server matching
+  const commandObj = registry.get(command);
+  const solutionCommandObj = registry.get(solutionCommand);
+  const sshCommandObj = registry.get('ssh');
+  
+  if (commandObj && solutionCommandObj && sshCommandObj && 
+      commandObj.name === sshCommandObj.name && 
+      solutionCommandObj.name === sshCommandObj.name) {
+    return false; // Handled by server:connected event for precise server matching
+  }
+  
+  // For logout/disconnect commands, rely on server:disconnected event
+  const logoutCommandObj = registry.get('logout');
+  if (commandObj && solutionCommandObj && logoutCommandObj && 
+      commandObj.name === logoutCommandObj.name && 
+      solutionCommandObj.name === logoutCommandObj.name) {
     return false; // Handled by server:disconnected event
   }
   
   // Check if command matches solution command (including aliases)
   // The registry maps aliases to the same command object, so we can compare by name
-  const commandObj = registry.get(command);
-  const solutionCommandObj = registry.get(solutionCommand);
+  // Reuse commandObj and solutionCommandObj already declared above
   
   if (!commandObj || !solutionCommandObj) {
     return false;
@@ -207,23 +221,8 @@ function matchesCommandSolution(
     }
   }
   
-  // For connect/ssh commands (and aliases), verify target server is a mission target
-  // Check if solution command is connect/ssh using registry (handles all aliases)
-  // Reuse solutionCommandObj already declared above
-  const connectCommandObj = registry.get('connect');
-  
-  if (solutionCommandObj && connectCommandObj && solutionCommandObj.name === connectCommandObj.name) {
-    const targetHostIds = getMissionTargetHosts(missionId);
-    // Extract server ID from args (e.g., "connect server-01" or "ssh server-01" -> "server-01")
-    // Handle user@server format: "ssh admin@server-01" -> "server-01"
-    let serverId = args[0];
-    if (serverId && serverId.includes('@')) {
-      serverId = serverId.split('@')[1];
-    }
-    if (serverId && targetHostIds.length > 0 && !targetHostIds.includes(serverId)) {
-      return false; // Connecting to wrong server
-    }
-  }
+  // Connect/ssh commands are handled by server:connected event (checked above)
+  // No need to validate here as they return false above
   
   return true;
 }
@@ -338,18 +337,21 @@ export function registerMissionEventHandlers(): void {
       const solution = task.solution.toLowerCase().trim();
       const parsedSolution = parseSolution(solution);
       
-      // Check if solution command is connect/ssh (or any alias) using registry
+      // Check if solution command is ssh/connect (or any alias) using registry
       const registry = createCommandRegistry();
       const solutionCommandObj = registry.get(parsedSolution.command);
-      const connectCommandObj = registry.get('connect');
+      const sshCommandObj = registry.get('ssh');
       
-      // Only handle connect/ssh commands (including aliases like 'ssh', 'remote', 'rdp' if added)
-      if (!solutionCommandObj || !connectCommandObj || solutionCommandObj.name !== connectCommandObj.name) {
+      // Only handle ssh/connect commands (including aliases like 'connect', 'remote', 'rdp' if added)
+      if (!solutionCommandObj || !sshCommandObj || solutionCommandObj.name !== sshCommandObj.name) {
         return;
       }
       
       // Check if connected server matches solution args
       // IMPORTANT: Only complete if solution specifies this exact server
+      // Use ID resolution to handle both old and new host ID formats
+      const resolvedEventServerId = resolveHostId(event.serverId);
+      
       const solutionArgs = parsedSolution.args;
       if (solutionArgs.length > 0) {
         // Extract server ID from solution args (handle user@server format)
@@ -357,15 +359,20 @@ export function registerMissionEventHandlers(): void {
         if (targetServer.includes('@')) {
           targetServer = targetServer.split('@')[1];
         }
-        // Match ONLY if connected server matches solution server exactly
+        // Resolve solution server ID to handle old/new formats
+        const resolvedTargetServer = resolveHostId(targetServer);
+        
+        // Match ONLY if connected server matches solution server exactly (after resolution)
         // This prevents completing server-01 task when connecting to server-02
-        if (event.serverId === targetServer) {
+        if (resolvedEventServerId === resolvedTargetServer) {
           missionStore.completeTask(currentMission.id, task.id);
         }
       } else {
         // No specific server in solution, any mission target host works
         // But only if there's exactly one target host (to avoid ambiguity)
-        if (targetHostIds.length === 1 && targetHostIds.includes(event.serverId)) {
+        // Resolve target host IDs for comparison
+        const resolvedTargetHostIds = targetHostIds.map(id => resolveHostId(id));
+        if (targetHostIds.length === 1 && resolvedTargetHostIds.includes(resolvedEventServerId)) {
           missionStore.completeTask(currentMission.id, task.id);
         }
       }
@@ -388,27 +395,83 @@ export function registerMissionEventHandlers(): void {
       if (missionStore.isTaskCompleted(currentMission.id, task.id)) return;
 
       const solution = task.solution.toLowerCase().trim();
+      const parsedSolution = parseSolution(solution);
       
-      // Only handle disconnect tasks
-      if (solution !== 'disconnect') {
+      // Only handle logout/disconnect commands (not VPN disconnect)
+      // Check if solution command is logout using registry
+      const registry = createCommandRegistry();
+      const solutionCommandObj = registry.get(parsedSolution.command);
+      const logoutCommandObj = registry.get('logout');
+      
+      // Only handle logout/disconnect commands (not VPN disconnect)
+      if (!solutionCommandObj || !logoutCommandObj || solutionCommandObj.name !== logoutCommandObj.name) {
         return;
       }
       
       // Check if solution specifies a particular server to disconnect from
-      const parsedSolution = parseSolution(solution);
       const solutionArgs = parsedSolution.args;
       
       if (solutionArgs.length > 0) {
-        // Solution specifies a server (e.g., "disconnect server-01")
+        // Solution specifies a server (e.g., "logout server-01")
         // Only complete if disconnecting from that specific server
         if (event.serverId === solutionArgs[0]) {
           missionStore.completeTask(currentMission.id, task.id);
         }
       } else {
-        // No specific server in solution, any mission target host works
-        // But only if there's exactly one target host (to avoid ambiguity)
-        if (targetHostIds.length === 1 && targetHostIds.includes(event.serverId)) {
+        // No specific server in solution - need to match based on task order and server context
+        // Strategy: Find the first incomplete logout task that comes after a connect task for this server
+        // OR if there's only one logout task, complete it when disconnecting from any target host
+        // OR if there's only one target host, complete the logout task
+        const logoutTasks = currentMission.tasks.filter(t => {
+          if (t.type !== 'command' || !t.solution) return false;
+          if (missionStore.isTaskCompleted(currentMission.id, t.id)) return false; // Only consider incomplete tasks
+          const taskSolution = t.solution.toLowerCase().trim();
+          const taskParsed = parseSolution(taskSolution);
+          const taskCmdObj = registry.get(taskParsed.command);
+          return taskCmdObj && taskCmdObj.name === 'logout';
+        });
+        
+        // If there's only one incomplete logout task, complete it when disconnecting from any target host
+        if (logoutTasks.length === 1 && targetHostIds.includes(event.serverId)) {
+          // Only one logout task remaining, must be for this server
+          if (logoutTasks[0].id === task.id) {
+            missionStore.completeTask(currentMission.id, task.id);
+          }
+        } else if (targetHostIds.length === 1 && targetHostIds.includes(event.serverId)) {
+          // Only one target host in mission, so this logout must be for it
           missionStore.completeTask(currentMission.id, task.id);
+        } else {
+          // Multiple logout tasks - match by finding the one that comes after a connect task for this server
+          const taskIndex = currentMission.tasks.findIndex(t => t.id === task.id);
+          if (taskIndex === -1) return;
+          
+          // Look backwards from this logout task to find the most recent connect task
+          // If that connect task is for the disconnected server, this logout task matches
+          for (let i = taskIndex - 1; i >= 0; i--) {
+            const prevTask = currentMission.tasks[i];
+            if (prevTask.type !== 'command' || !prevTask.solution) continue;
+            
+            const prevSolution = prevTask.solution.toLowerCase().trim();
+            const prevParsed = parseSolution(prevSolution);
+            const prevCmdObj = registry.get(prevParsed.command);
+            const sshCmdObj = registry.get('ssh');
+            
+            // Check if this is a connect/ssh task
+            if (prevCmdObj && sshCmdObj && prevCmdObj.name === sshCmdObj.name) {
+              // Extract server from connect task solution
+              if (prevParsed.args.length > 0) {
+                let connectServer = prevParsed.args[0];
+                if (connectServer.includes('@')) {
+                  connectServer = connectServer.split('@')[1];
+                }
+                // If the connect task is for the disconnected server, this logout task matches
+                if (connectServer === event.serverId) {
+                  missionStore.completeTask(currentMission.id, task.id);
+                  return;
+                }
+              }
+            }
+          }
         }
       }
     });
@@ -432,10 +495,24 @@ export function registerMissionEventHandlers(): void {
       // Handle crack commands
       // The command is 'crack' but the toolId is 'password-cracker'
       if (parsedSolution.command === 'crack' && event.toolId === 'password-cracker') {
-        // Check if target matches solution args
+        // If solution has no args, complete task if cracking any credential file
         const solutionArgs = parsedSolution.args.join(' ');
-        if (event.target && solutionArgs && event.target.includes(solutionArgs)) {
-          missionStore.completeTask(currentMission.id, task.id);
+        if (!solutionArgs || solutionArgs.trim() === '') {
+          // No specific file in solution - complete if cracking any credential file
+          if (event.target && event.target.includes('credentials')) {
+            missionStore.completeTask(currentMission.id, task.id);
+          }
+        } else {
+          // Solution specifies a file - check if target matches (handle both old and new ID formats)
+          if (event.target) {
+            const normalizedTarget = event.target.toLowerCase();
+            const normalizedSolution = solutionArgs.toLowerCase();
+            
+            // Match if target includes solution args (handles partial matches)
+            if (normalizedTarget.includes(normalizedSolution) || normalizedSolution.includes(normalizedTarget)) {
+              missionStore.completeTask(currentMission.id, task.id);
+            }
+          }
         }
       }
       

@@ -38,7 +38,7 @@ function createNetworkInvestigationEmail(): Email {
     worldGraph: {
       fromContactId: 'agent-smith',
       fromOrganizationId: 'neoncloud',
-      relatedHostIds: ['server-01'],
+      relatedHostIds: ['megacorp-server-01'],
       relatedOrganizationIds: ['megacorp'],
     },
     body: `Agent,
@@ -91,7 +91,7 @@ export const networkInvestigationMissionModule: MissionModule = {
   // World Graph Relationships
   worldGraph: {
     clientOrganizationId: 'neoncloud',
-    targetHostIds: ['server-01'],
+    targetHostIds: ['megacorp-server-01'],
     targetOrganizationIds: ['megacorp'],
     contactId: 'agent-smith',
   },
@@ -175,10 +175,11 @@ export const networkInvestigationMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('n00b-03', 'Connect to server-01 using credentials from previous mission'),
         hints: getTaskHints('n00b-03', [
-          'Use "connect server-01"',
+          'Use "ssh server-01" or "ssh admin@server-01"',
           'Credentials: admin / cyberpass123 (same as n00b-01)',
+          'You can also use "connect server-01" as an alias',
         ]),
-        solution: 'connect server-01',
+        solution: 'ssh server-01',
         reward: 30,
       },
       {
@@ -235,10 +236,11 @@ export const networkInvestigationMissionModule: MissionModule = {
         type: 'command',
         objective: getTaskObjective('n00b-03', 'Disconnect from server-01 after completing investigation'),
         hints: getTaskHints('n00b-03', [
-          'Use "disconnect" to disconnect from the server',
+          'Use "logout" to disconnect from the server',
+          'You can also use "disconnect" as an alias',
           'Always disconnect after completing objectives',
         ]),
-        solution: 'disconnect',
+        solution: 'logout',
         reward: 20,
       },
     ],

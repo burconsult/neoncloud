@@ -13,13 +13,13 @@ export const megacorpOrg: Organization = {
   type: 'corporation',
   classification: 'target',
   
-  domain: 'megacorp.local',
+  domain: 'megacorp.com',
   publicDomain: 'megacorp.com',
   internalDomain: 'megacorp.local',
   networkSegments: ['megacorp-internal', 'megacorp-dmz'],
-  ipRange: '192.168.1.0/24',
+  ipRange: '203.0.113.0/24', // Public IP range (TEST-NET-3, safe for examples)
   
-  hostIds: ['server-01', 'server-02'], // Servers owned by Megacorp
+  hostIds: ['megacorp-webserver', 'megacorp-server-01', 'megacorp-database-01'], // Servers owned by Megacorp (web server + internal servers)
   contactIds: [], // No contacts initially
   
   vendorInfo: null,

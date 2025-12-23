@@ -51,6 +51,24 @@ export const MISSION_REWARDS: Record<string, RewardDefinition> = {
     description: 'Completed First Hack: Protected Server',
     category: 'mission',
   },
+  'n00b-02': {
+    id: 'mission-n00b-02',
+    amount: 400,
+    description: 'Completed Data Extraction: Database Server',
+    category: 'mission',
+  },
+  'n00b-03': {
+    id: 'mission-n00b-03',
+    amount: 350,
+    description: 'Completed Network Investigation',
+    category: 'mission',
+  },
+  'h4x0r-01': {
+    id: 'mission-h4x0r-01',
+    amount: 600,
+    description: 'Completed Advanced Penetration: Multi-Server Exfiltration',
+    category: 'mission',
+  },
 };
 
 /**
