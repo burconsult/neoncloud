@@ -47,7 +47,7 @@ export interface GameSaveData {
   };
   challenge: {
     isRoot: boolean;
-    currentChallenge: import('../challenges/challengeGenerator').Challenge | null;
+    currentChallenge: import('../challenges/ChallengeModule').Challenge | null;
     attempts: number;
     rootPassword: string | null;
   };

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Challenge, generateChallenge, verifyChallengeAnswer } from '../challenges/challengeGenerator';
+import { Challenge } from '../challenges/ChallengeModule';
+import { generateChallenge, verifyChallengeAnswer } from '../challenges/challengeLoader';
 // Ensure challenge generators are loaded
 import '../challenges/challengeLoader';
 

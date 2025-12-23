@@ -1,3 +1,24 @@
+/**
+ * Diagram Component
+ * 
+ * Programmatic SVG diagram generator for educational content.
+ * 
+ * STATUS: Available for future use - not currently integrated into missions/educational popups.
+ * 
+ * This component can be used to display educational diagrams in:
+ * - Educational popups
+ * - Mission descriptions
+ * - Help system
+ * - Lore entries
+ * 
+ * @example
+ * <Diagram 
+ *   type="dns-resolution"
+ *   title="DNS Resolution Process"
+ *   description="Shows how DNS queries resolve domain names to IP addresses"
+ * />
+ */
+
 import { 
   generateNetworkTopologyDiagram,
   generateDNSResolutionDiagram,
