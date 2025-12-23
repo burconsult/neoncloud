@@ -42,21 +42,27 @@ export async function getServerFileSystem(serverId: string): Promise<FileSystem 
 
 /**
  * Synchronous version for backward compatibility
- * Note: This will only work if world registry is already loaded
+ * Uses a cached reference to world registry (set when module loads)
  */
+let worldRegistryCache: typeof import('../world/registry/WorldRegistry').worldRegistry | null = null;
+
+// Initialize cache when module loads (world registry should be imported by then)
+import('../world/registry/WorldRegistry').then(module => {
+  worldRegistryCache = module.worldRegistry;
+}).catch(() => {
+  // Ignore - will be set when world registry loads
+});
+
 export function getServerFileSystemSync(serverId: string): FileSystem | null {
   try {
-    // Try to access world registry synchronously (only works if already imported)
-    const { worldRegistry } = require('../world/registry/WorldRegistry');
-    const host = worldRegistry.getHost(serverId);
-    
-    if (host && host.fileSystemFactory) {
-      return host.fileSystemFactory();
+    if (worldRegistryCache) {
+      const host = worldRegistryCache.getHost(serverId);
+      if (host && host.fileSystemFactory) {
+        return host.fileSystemFactory();
+      }
     }
-    
     return null;
   } catch (error) {
-    // If require fails, return null (will be handled by async version)
     return null;
   }
 }
