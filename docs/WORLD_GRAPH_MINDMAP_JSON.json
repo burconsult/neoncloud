@@ -1,0 +1,291 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "created": "2024-01-20",
+    "description": "Complete world graph structure in JSON format for programmatic access"
+  },
+  "entities": {
+    "organizations": [
+      {
+        "id": "neoncloud",
+        "name": "NeonCloud Special Cyberoperations Group",
+        "type": "neoncloud",
+        "ipRange": "10.0.0.0/24",
+        "relationships": {
+          "owns": ["localhost"],
+          "employs": ["agent-smith"],
+          "sells": ["network-scanner-basic", "vpn-basic", "password-cracker-basic", "log-shredder-basic"],
+          "missions": ["welcome-00", "n00b-01", "n00b-02"]
+        }
+      },
+      {
+        "id": "megacorp",
+        "name": "Megacorp Industries",
+        "type": "corporation",
+        "ipRange": "192.168.1.0/24",
+        "relationships": {
+          "owns": ["server-01", "server-02"],
+          "missions": ["n00b-01", "n00b-02"]
+        }
+      }
+    ],
+    "contacts": [
+      {
+        "id": "agent-smith",
+        "name": "Agent Smith",
+        "organization": "neoncloud",
+        "role": "handler",
+        "email": "agent-smith@neoncloud-ops.org",
+        "relationships": {
+          "worksFor": "neoncloud",
+          "sendsEmails": ["email-welcome-001", "email-first-hack-001", "email-data-extraction-001"],
+          "involvedInMissions": ["welcome-00", "n00b-01", "n00b-02"]
+        }
+      }
+    ],
+    "hosts": [
+      {
+        "id": "localhost",
+        "name": "localhost",
+        "organization": "neoncloud",
+        "ipAddress": "127.0.0.1",
+        "role": "workstation",
+        "relationships": {
+          "ownedBy": "neoncloud",
+          "connectsTo": ["server-01", "server-02"]
+        }
+      },
+      {
+        "id": "server-01",
+        "name": "server-01",
+        "organization": "megacorp",
+        "ipAddress": "192.168.1.100",
+        "domain": "server-01.megacorp.local",
+        "role": "web-server",
+        "relationships": {
+          "ownedBy": "megacorp",
+          "targetedByMissions": ["n00b-01"],
+          "mentionedInEmails": ["email-first-hack-001"],
+          "connectsTo": ["server-02"]
+        }
+      },
+      {
+        "id": "server-02",
+        "name": "server-02",
+        "organization": "megacorp",
+        "ipAddress": "192.168.1.101",
+        "domain": "server-02.megacorp.local",
+        "role": "database-server",
+        "relationships": {
+          "ownedBy": "megacorp",
+          "targetedByMissions": ["n00b-02"],
+          "mentionedInEmails": ["email-data-extraction-001"],
+          "connectsTo": ["server-01"]
+        }
+      }
+    ],
+    "missions": [
+      {
+        "id": "welcome-00",
+        "name": "Welcome to NeonCloud",
+        "category": "training",
+        "relationships": {
+          "targetsOrganizations": ["neoncloud"],
+          "involvesContacts": ["agent-smith"],
+          "requiresTools": ["network-scanner-basic"],
+          "unlocksMissions": ["tutorial-01"],
+          "unlocksTools": ["network-scanner-basic"],
+          "unlocksLore": ["lore-neoncloud-org"],
+          "sendsEmails": ["email-welcome-001"]
+        }
+      },
+      {
+        "id": "tutorial-01",
+        "name": "Terminal Navigation",
+        "category": "training",
+        "relationships": {
+          "prerequisite": ["welcome-00"],
+          "unlocksMissions": ["network-02"]
+        }
+      },
+      {
+        "id": "network-02",
+        "name": "Network Connectivity",
+        "category": "training",
+        "relationships": {
+          "prerequisite": ["tutorial-01"],
+          "unlocksMissions": ["network-03"]
+        }
+      },
+      {
+        "id": "network-03",
+        "name": "Network Topology",
+        "category": "training",
+        "relationships": {
+          "prerequisite": ["network-02"],
+          "unlocksMissions": ["network-04"]
+        }
+      },
+      {
+        "id": "network-04",
+        "name": "DNS Exploration",
+        "category": "training",
+        "relationships": {
+          "prerequisite": ["network-03"],
+          "unlocksMissions": ["n00b-01"]
+        }
+      },
+      {
+        "id": "n00b-01",
+        "name": "First Hack",
+        "category": "script-kiddie",
+        "relationships": {
+          "prerequisite": ["network-04"],
+          "targetsOrganizations": ["megacorp"],
+          "targetsHosts": ["server-01"],
+          "involvesContacts": ["agent-smith"],
+          "requiresTools": ["vpn-basic", "password-cracker-basic"],
+          "unlocksMissions": ["n00b-02"],
+          "unlocksTools": ["vpn-basic", "password-cracker-basic"],
+          "sendsEmails": ["email-first-hack-001"]
+        }
+      },
+      {
+        "id": "n00b-02",
+        "name": "Data Extraction",
+        "category": "script-kiddie",
+        "relationships": {
+          "prerequisite": ["n00b-01"],
+          "targetsOrganizations": ["megacorp"],
+          "targetsHosts": ["server-02"],
+          "involvesContacts": ["agent-smith"],
+          "requiresTools": ["vpn-basic", "password-cracker-basic", "log-shredder-basic"],
+          "unlocksTools": ["log-shredder-basic"],
+          "sendsEmails": ["email-data-extraction-001"]
+        }
+      }
+    ],
+    "tools": [
+      {
+        "id": "network-scanner-basic",
+        "name": "Network Scanner",
+        "vendor": "neoncloud",
+        "relationships": {
+          "soldBy": "neoncloud",
+          "unlockedBy": ["welcome-00"],
+          "requiredBy": ["welcome-00"]
+        }
+      },
+      {
+        "id": "vpn-basic",
+        "name": "VPN Basic",
+        "vendor": "neoncloud",
+        "relationships": {
+          "soldBy": "neoncloud",
+          "unlockedBy": ["n00b-01"],
+          "requiredBy": ["n00b-01", "n00b-02"]
+        }
+      },
+      {
+        "id": "password-cracker-basic",
+        "name": "Password Cracker Basic",
+        "vendor": "neoncloud",
+        "relationships": {
+          "soldBy": "neoncloud",
+          "unlockedBy": ["n00b-01"],
+          "requiredBy": ["n00b-01", "n00b-02"]
+        }
+      },
+      {
+        "id": "log-shredder-basic",
+        "name": "Log Shredder Basic",
+        "vendor": "neoncloud",
+        "relationships": {
+          "soldBy": "neoncloud",
+          "unlockedBy": ["n00b-02"],
+          "requiredBy": ["n00b-02"]
+        }
+      }
+    ],
+    "emails": [
+      {
+        "id": "email-welcome-001",
+        "subject": "Welcome to NeonCloud Special Cyberoperations Group",
+        "relationships": {
+          "fromContact": "agent-smith",
+          "fromOrganization": "neoncloud",
+          "relatedToMission": "welcome-00",
+          "unlocksLore": ["lore-neoncloud-org"]
+        }
+      },
+      {
+        "id": "email-first-hack-001",
+        "subject": "Contract Assignment: Server-01 Penetration Test",
+        "relationships": {
+          "fromContact": "agent-smith",
+          "fromOrganization": "neoncloud",
+          "relatedToMission": "n00b-01",
+          "mentionsHosts": ["server-01"],
+          "mentionsOrganizations": ["megacorp"],
+          "hasAttachments": ["server-01-credentials.enc"]
+        }
+      },
+      {
+        "id": "email-data-extraction-001",
+        "subject": "Contract Assignment: Server-02 Data Extraction",
+        "relationships": {
+          "fromContact": "agent-smith",
+          "fromOrganization": "neoncloud",
+          "relatedToMission": "n00b-02",
+          "mentionsHosts": ["server-02"],
+          "mentionsOrganizations": ["megacorp"],
+          "hasAttachments": ["server-02-credentials.enc"]
+        }
+      }
+    ],
+    "lore": [
+      {
+        "id": "lore-neoncloud-org",
+        "name": "NeonCloud Organization",
+        "relationships": {
+          "unlockedBy": ["welcome-00"],
+          "unlockedByEmail": ["email-welcome-001"]
+        }
+      }
+    ]
+  },
+  "statistics": {
+    "totalEntities": 21,
+    "organizations": 2,
+    "contacts": 1,
+    "hosts": 3,
+    "missions": 7,
+    "tools": 4,
+    "emails": 3,
+    "lore": 1,
+    "relationshipTypes": [
+      "owns",
+      "employs",
+      "sells",
+      "targets",
+      "requires",
+      "unlocks",
+      "prerequisite",
+      "connects",
+      "from",
+      "mentions",
+      "unlockedBy",
+      "soldBy",
+      "requiredBy",
+      "involves",
+      "worksFor",
+      "sendsEmails",
+      "involvedInMissions",
+      "targetedByMissions",
+      "mentionedInEmails",
+      "relatedToMission",
+      "hasAttachments"
+    ]
+  }
+}
+

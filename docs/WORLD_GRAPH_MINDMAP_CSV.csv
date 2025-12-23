@@ -1,0 +1,88 @@
+Source Type,Source ID,Relationship Type,Target Type,Target ID,Notes
+Organization,neoncloud,owns,Host,localhost,NeonCloud owns player's local machine
+Organization,neoncloud,employs,Contact,agent-smith,Agent Smith is NeonCloud handler
+Organization,neoncloud,sells,Tool,network-scanner-basic,Free tool provided to new agents
+Organization,neoncloud,sells,Tool,vpn-basic,VPN sold by NeonCloud
+Organization,neoncloud,sells,Tool,password-cracker-basic,Password cracker sold by NeonCloud
+Organization,neoncloud,sells,Tool,log-shredder-basic,Log shredder sold by NeonCloud
+Organization,megacorp,owns,Host,server-01,Megacorp owns server-01
+Organization,megacorp,owns,Host,server-02,Megacorp owns server-02
+Contact,agent-smith,worksFor,Organization,neoncloud,Agent Smith works for NeonCloud
+Contact,agent-smith,sendsEmails,Email,email-welcome-001,Agent Smith sends welcome email
+Contact,agent-smith,sendsEmails,Email,email-first-hack-001,Agent Smith sends first hack email
+Contact,agent-smith,sendsEmails,Email,email-data-extraction-001,Agent Smith sends data extraction email
+Contact,agent-smith,involvedInMissions,Mission,welcome-00,Agent Smith involved in welcome mission
+Contact,agent-smith,involvedInMissions,Mission,n00b-01,Agent Smith involved in first hack mission
+Contact,agent-smith,involvedInMissions,Mission,n00b-02,Agent Smith involved in data extraction mission
+Host,localhost,connectsTo,Host,server-01,Network connection
+Host,localhost,connectsTo,Host,server-02,Network connection
+Host,server-01,connectsTo,Host,server-02,Network connection between servers
+Host,server-01,targetedByMissions,Mission,n00b-01,server-01 is target of first hack mission
+Host,server-01,mentionedInEmails,Email,email-first-hack-001,server-01 mentioned in first hack email
+Host,server-02,targetedByMissions,Mission,n00b-02,server-02 is target of data extraction mission
+Host,server-02,mentionedInEmails,Email,email-data-extraction-001,server-02 mentioned in data extraction email
+Mission,welcome-00,targetsOrganizations,Organization,neoncloud,Welcome mission targets NeonCloud (intro)
+Mission,welcome-00,involvesContacts,Contact,agent-smith,Welcome mission involves Agent Smith
+Mission,welcome-00,requiresTools,Tool,network-scanner-basic,Welcome mission requires network scanner
+Mission,welcome-00,unlocksMissions,Mission,tutorial-01,Welcome mission unlocks terminal navigation
+Mission,welcome-00,unlocksTools,Tool,network-scanner-basic,Welcome mission unlocks network scanner
+Mission,welcome-00,unlocksLore,Lore,lore-neoncloud-org,Welcome mission unlocks NeonCloud lore
+Mission,welcome-00,sendsEmails,Email,email-welcome-001,Welcome mission sends welcome email
+Mission,tutorial-01,prerequisite,Mission,welcome-00,Terminal navigation requires welcome mission
+Mission,tutorial-01,unlocksMissions,Mission,network-02,Terminal navigation unlocks network connectivity
+Mission,network-02,prerequisite,Mission,tutorial-01,Network connectivity requires terminal navigation
+Mission,network-02,unlocksMissions,Mission,network-03,Network connectivity unlocks network topology
+Mission,network-03,prerequisite,Mission,network-02,Network topology requires network connectivity
+Mission,network-03,unlocksMissions,Mission,network-04,Network topology unlocks DNS exploration
+Mission,network-04,prerequisite,Mission,network-03,DNS exploration requires network topology
+Mission,network-04,unlocksMissions,Mission,n00b-01,DNS exploration unlocks first hack
+Mission,n00b-01,prerequisite,Mission,network-04,First hack requires DNS exploration
+Mission,n00b-01,targetsOrganizations,Organization,megacorp,First hack targets Megacorp
+Mission,n00b-01,targetsHosts,Host,server-01,First hack targets server-01
+Mission,n00b-01,involvesContacts,Contact,agent-smith,First hack involves Agent Smith
+Mission,n00b-01,requiresTools,Tool,vpn-basic,First hack requires VPN
+Mission,n00b-01,requiresTools,Tool,password-cracker-basic,First hack requires password cracker
+Mission,n00b-01,unlocksMissions,Mission,n00b-02,First hack unlocks data extraction
+Mission,n00b-01,unlocksTools,Tool,vpn-basic,First hack unlocks VPN
+Mission,n00b-01,unlocksTools,Tool,password-cracker-basic,First hack unlocks password cracker
+Mission,n00b-01,sendsEmails,Email,email-first-hack-001,First hack sends contract email
+Mission,n00b-02,prerequisite,Mission,n00b-01,Data extraction requires first hack
+Mission,n00b-02,targetsOrganizations,Organization,megacorp,Data extraction targets Megacorp
+Mission,n00b-02,targetsHosts,Host,server-02,Data extraction targets server-02
+Mission,n00b-02,involvesContacts,Contact,agent-smith,Data extraction involves Agent Smith
+Mission,n00b-02,requiresTools,Tool,vpn-basic,Data extraction requires VPN
+Mission,n00b-02,requiresTools,Tool,password-cracker-basic,Data extraction requires password cracker
+Mission,n00b-02,requiresTools,Tool,log-shredder-basic,Data extraction requires log shredder
+Mission,n00b-02,unlocksTools,Tool,log-shredder-basic,Data extraction unlocks log shredder
+Mission,n00b-02,sendsEmails,Email,email-data-extraction-001,Data extraction sends contract email
+Tool,network-scanner-basic,soldBy,Organization,neoncloud,Network scanner sold by NeonCloud
+Tool,network-scanner-basic,unlockedBy,Mission,welcome-00,Network scanner unlocked by welcome mission
+Tool,network-scanner-basic,requiredBy,Mission,welcome-00,Network scanner required by welcome mission
+Tool,vpn-basic,soldBy,Organization,neoncloud,VPN sold by NeonCloud
+Tool,vpn-basic,unlockedBy,Mission,n00b-01,VPN unlocked by first hack mission
+Tool,vpn-basic,requiredBy,Mission,n00b-01,VPN required by first hack mission
+Tool,vpn-basic,requiredBy,Mission,n00b-02,VPN required by data extraction mission
+Tool,password-cracker-basic,soldBy,Organization,neoncloud,Password cracker sold by NeonCloud
+Tool,password-cracker-basic,unlockedBy,Mission,n00b-01,Password cracker unlocked by first hack mission
+Tool,password-cracker-basic,requiredBy,Mission,n00b-01,Password cracker required by first hack mission
+Tool,password-cracker-basic,requiredBy,Mission,n00b-02,Password cracker required by data extraction mission
+Tool,log-shredder-basic,soldBy,Organization,neoncloud,Log shredder sold by NeonCloud
+Tool,log-shredder-basic,unlockedBy,Mission,n00b-02,Log shredder unlocked by data extraction mission
+Tool,log-shredder-basic,requiredBy,Mission,n00b-02,Log shredder required by data extraction mission
+Email,email-welcome-001,fromContact,Contact,agent-smith,Welcome email from Agent Smith
+Email,email-welcome-001,fromOrganization,Organization,neoncloud,Welcome email from NeonCloud
+Email,email-welcome-001,relatedToMission,Mission,welcome-00,Welcome email related to welcome mission
+Email,email-welcome-001,unlocksLore,Lore,lore-neoncloud-org,Welcome email unlocks NeonCloud lore
+Email,email-first-hack-001,fromContact,Contact,agent-smith,First hack email from Agent Smith
+Email,email-first-hack-001,fromOrganization,Organization,neoncloud,First hack email from NeonCloud
+Email,email-first-hack-001,relatedToMission,Mission,n00b-01,First hack email related to first hack mission
+Email,email-first-hack-001,mentionsHosts,Host,server-01,First hack email mentions server-01
+Email,email-first-hack-001,mentionsOrganizations,Organization,megacorp,First hack email mentions Megacorp
+Email,email-data-extraction-001,fromContact,Contact,agent-smith,Data extraction email from Agent Smith
+Email,email-data-extraction-001,fromOrganization,Organization,neoncloud,Data extraction email from NeonCloud
+Email,email-data-extraction-001,relatedToMission,Mission,n00b-02,Data extraction email related to data extraction mission
+Email,email-data-extraction-001,mentionsHosts,Host,server-02,Data extraction email mentions server-02
+Email,email-data-extraction-001,mentionsOrganizations,Organization,megacorp,Data extraction email mentions Megacorp
+Lore,lore-neoncloud-org,unlockedBy,Mission,welcome-00,NeonCloud lore unlocked by welcome mission
+Lore,lore-neoncloud-org,unlockedByEmail,Email,email-welcome-001,NeonCloud lore unlocked by welcome email
+
